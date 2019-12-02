@@ -10271,18 +10271,14 @@ part number 2062-2P from STA</description>
 </net>
 <net name="N$8" class="0">
 <segment>
-<pinref part="U$1" gate="G$1" pin="9/RX2/PWM"/>
-<wire x1="109.22" y1="93.98" x2="104.14" y2="93.98" width="0.1524" layer="91"/>
-<wire x1="104.14" y1="93.98" x2="104.14" y2="96.52" width="0.1524" layer="91"/>
-<wire x1="104.14" y1="96.52" x2="58.42" y2="96.52" width="0.1524" layer="91"/>
+<pinref part="U$1" gate="G$1" pin="8/TX3"/>
+<wire x1="109.22" y1="96.52" x2="60.96" y2="96.52" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$9" class="0">
 <segment>
-<pinref part="U$1" gate="G$1" pin="8/TX3"/>
-<wire x1="109.22" y1="96.52" x2="106.68" y2="96.52" width="0.1524" layer="91"/>
-<wire x1="106.68" y1="96.52" x2="106.68" y2="99.06" width="0.1524" layer="91"/>
-<wire x1="106.68" y1="99.06" x2="53.34" y2="99.06" width="0.1524" layer="91"/>
+<pinref part="U$1" gate="G$1" pin="7/RX3"/>
+<wire x1="109.22" y1="99.06" x2="60.96" y2="99.06" width="0.1524" layer="91"/>
 </segment>
 </net>
 </nets>
