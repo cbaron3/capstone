@@ -1,0 +1,24 @@
+{
+    "Header": {
+        "Comment": "All values are metric (mm)",
+        "CreationDate": "2019-12-05T03:25:54Z",
+        "GenerationSoftware": {
+            "Application": "EAGLE",
+            "Vendor": "Autodesk",
+            "Version": "9.4.0"
+        },
+        "Part": "Single"
+    },
+    "Overall": {
+        "BoardThickness": 1.57,
+        "LayerNumber": 2,
+        "Name": {
+            "ProjectId": "capstone"
+        },
+        "Owner": "Carl Baron <cbaron3@uwo.ca>",
+        "Size": {
+            "X": 68.56,
+            "Y": 51.27
+        }
+    }
+}
