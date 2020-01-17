@@ -1,5 +1,14 @@
-#include "Config.hpp"
 #include <Servo.h>
+#include <RH_RF95.h>  // Note: Must be used as library
+
+#include "src/Adafruit_MPL3115A2_Library/Adafruit_MPL3115A2.h"
+#include "src/Arduino-PID-Library/PID_v1.h"
+#include "src/MadgwickAHRS/MadgwickAHRS.h"
+#include "src/MPU9250/MPU9250.h"
+#include "src/TinyGPS/TinyGPS.h"
+
+#include "Config.hpp"
+
 // elapsedMicros is a Teensy type that automatically measures duration in ms precision
 elapsedMicros time_elapsed_us[sizeof(RECEIVERS)];  
 // Resulting pulse widths; volatile because memory accessed in interrupt and can't be optimized out
@@ -42,8 +51,8 @@ void terminate_interrupts(void) {
     detachInterrupt(digitalPinToInterrupt(RECEIVERS[1]));
 }
 
-enum class OP_MODE {MANUAL, AUTO};
-OP_MODE mode = OP_MODE::MANUAL;
+enum class OP_MODE {MANUAL_MODE, AUTO};
+OP_MODE mode = OP_MODE::MANUAL_MODE;
 OP_MODE last_mode = mode;
 
 Servo left_elevon, right_elevon;
