@@ -1,5 +1,9 @@
 #pragma once
 
+/**
+ * File for containing all configuration variables such as pins, constants
+ */
+ 
 #include "Arduino.h"
 
 using Pin = unsigned int;
@@ -17,21 +21,19 @@ static constexpr Pin LED2 = 7;
 static constexpr Pin LED3 = 6;
 static constexpr Pin LED4 = 5;
 static constexpr unsigned int LED_COUNT = 4;
-static constexpr Pin LEDS[LED_COUNT] = {LED1, LED2, LED3, LED4};
-
+static constexpr Pin LED_PINS[LED_COUNT] = {LED1, LED2, LED3, LED4};
 
 /* SERVOS */
 static constexpr Pin SERVO1 = 20;
 static constexpr Pin SERVO2 = 21;
-static constexpr Pin SERVOS[] = {20, 21};
+static constexpr Pin SERVOS[] = {SERVO1, SERVO2};
 
 /* RECEIVER INPUTS */
 static constexpr Pin RECEIVER1 = 22;
 static constexpr Pin RECEIVER2 = 23;
-static constexpr Pin RECEIVERS[] = {22, 23};
+static constexpr Pin RECEIVERS[] = {RECEIVER1, RECEIVER2};
 
 /* RADIO */
-// Uses the only SPI bus available
 static constexpr Pin RADIO_CS = 14;
 static constexpr Pin RADIO_RESET = 15;
 static constexpr Pin RADIO_INT = 16;

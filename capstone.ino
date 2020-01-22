@@ -1,132 +1,113 @@
-#include <Servo.h>
-#include <RH_RF95.h>  // Note: Must be used as library
-
-#include "src/Adafruit_MPL3115A2_Library/Adafruit_MPL3115A2.h"
-#include "src/Arduino-PID-Library/PID_v1.h"
-#include "src/MadgwickAHRS/MadgwickAHRS.h"
-#include "src/MPU9250/MPU9250.h"
-#include "src/TinyGPS/TinyGPS.h"
-
+// System configuration including pins, debugging, and system mode
 #include "Config.hpp"
 
-// elapsedMicros is a Teensy type that automatically measures duration in ms precision
-elapsedMicros time_elapsed_us[sizeof(RECEIVERS)];  
-// Resulting pulse widths; volatile because memory accessed in interrupt and can't be optimized out
-volatile unsigned int measured_pwm[sizeof(RECEIVERS)];
+// IMU functionality based on the MPU9250
+#include "IMU.hpp"
+MPU9250 mpu9250(Wire, 0x68);
 
-void measure_pulses(unsigned int pin_index) {
-    // Read pin state. 
-    //    If the pin is high, pulse has started and the timer is reset.
-    //    If the pin is low, the pulse has ended and the resulting time difference can be calculated for the pulse
-    if(digitalReadFast(RECEIVERS[pin_index])) {
-        time_elapsed_us[pin_index] = 0;
-    } else {
-        // Because the time elapsed is set to zero on every HIGH, the result will be the value stored in time_elapsed which is automatically incremented;
-        measured_pwm[pin_index] = time_elapsed_us[pin_index];
-    }
-}
+// GPS functionalty based on Adafruit GPS using AdafruitGPS interrupt library
+#include "GPS.hpp"
+Adafruit_GPS adafruit_gps(GPS_PORT);
 
-// Interrupt service routine to be called on change of the first receiver pin
-void measure_recv1(void) {
-    measure_pulses(0);
-}
+// Other GPS implementation using TinyGPS instead. Not ideal cause requires you to spend time waiting for buffer to fill
+#include "OtherGPS.hpp"
 
-// Interrupt service routine to be called on change of the second receiver pin
-void measure_recv2(void) {
-    measure_pulses(1);
-}
+// Barometer functionality based on the MPL3115AS
+#include "Barometer.hpp"
+MPL3115A2 mpl3115;
 
-void init_receivers(void) {
-    pinMode(RECEIVERS[0],INPUT);
-    pinMode(RECEIVERS[1],INPUT);
-}
+// Servo functionality
+#include "Actuators.hpp"
+PWMServo left_elevon, right_elevon;
 
-void init_interrupts(void) {
-    attachInterrupt(digitalPinToInterrupt(RECEIVERS[0]),measure_recv1, CHANGE);
-    attachInterrupt(digitalPinToInterrupt(RECEIVERS[1]),measure_recv2, CHANGE);
-}
+// LED usage
+#include "LEDS.hpp"
 
-void terminate_interrupts(void) {
-    detachInterrupt(digitalPinToInterrupt(RECEIVERS[0]));
-    detachInterrupt(digitalPinToInterrupt(RECEIVERS[1]));
-}
+// Pins reading PWM from the RC receiver
+#include "Receiver.hpp"
 
-enum class OP_MODE {MANUAL_MODE, AUTO};
-OP_MODE mode = OP_MODE::MANUAL_MODE;
-OP_MODE last_mode = mode;
+#include "src/uNavAHRS/uNavAHRS.h"
+uNavAHRS filter;
 
-Servo left_elevon, right_elevon;
+// Data timer
+unsigned long prev = 0;
+const long interval = 2000;
 
-void init_servos(void) {
-      left_elevon.attach(SERVO1);
-      right_elevon.attach(SERVO2);
-    }
-
-
-void setup_leds(void) {
-    for(int i = 0; i < LED_COUNT; i++) {
-        pinMode(LEDS[i], OUTPUT);
-    }
-}
-
-
-void loop_leds(int delay_time) {
-    for(int i = 0; i < LED_COUNT; i++) {
-        digitalWrite(LEDS[i], HIGH);
-        delay(delay_time);
-        digitalWrite(LEDS[i], LOW);
-    }
-    
-    for(int i = LED_COUNT - 2; i > 0; i--) {
-        digitalWrite(LEDS[i], HIGH);
-        delay(delay_time);
-        digitalWrite(LEDS[i], LOW);
-    }
-}
+// Servo timer
+unsigned long servo_prev = 0;
+const long servo_interval = 50;
 
 void setup() {
-    if(DEBUG_MODE) {
-        Serial.begin(115200);
-        while(!Serial) {}
-    }
-    
+  if(DEBUG_MODE) {
+    Serial.begin(115200);
+    delay(2500);
+  }
 
-    switch(MODE) {
-        case BOOT_MODE::LED_TEST:
-        case BOOT_MODE::LED_TEST_RANDOM: {
-            setup_leds();
-        } break;
-    }
+  // Initialize sensors
+  IMU::init(mpu9250);
+  GPS::init(adafruit_gps);
+  BARO::init(mpl3115);
+
+  // Initialize servos and receiver input
+  ACTUATORS::init(left_elevon, right_elevon);
+  RECEIVER::init();
+  RECEIVER::init_interrupts();
+  
+  // Initialize leds with simple animation
+  LEDS::init();
+  LEDS::sweep(250);
+
+  // TODO: Calibration routes only if specific mode. Need to calibrate gyro and barometer everytime
+  IMU::calibrate(mpu9250, IMU::GYRO);
+  //IMU::calibrate(mpu9250, IMU::MAG);
+  //IMU::calibrate(mpu9250, IMU::ACCEL);
+  // BARO::calibrate();
 }
-
 
 void loop() {
-    switch(MODE) {
-        case BOOT_MODE::LED_TEST: {
-            loop_leds( 250 );
-        } break;
+  // Only read data from GPS if valid NMEA received
+//  if(GPS::read_sensor(adafruit_gps) == true) {
+//    unsigned long curr = millis();
+//    if(curr - prev >= interval) {
+//      prev = curr;
 
-        case BOOT_MODE::LED_TEST_RANDOM: {
-            loop_leds( random(50, 250) );
-        } break;
-    }
+      // Read data
+//      GPS::GPSData gps_data = GPS::read_data(adafruit_gps);
+//      IMU::MPU9250Data imu_data = IMU::read_data(mpu9250);
+//      BARO::BaroData baro_data = BARO::read_data(mpl3115);
+//      RECEIVER::ReceiverData recv_data = RECEIVER::read_data();
+//
+//      filter.update(imu_data.gx,imu_data.gy, imu_data.gz, 
+//                    imu_data.ax, imu_data.ay, imu_data.az,
+//                    imu_data.mx, imu_data.my, imu_data.mz);
+//        
+      // Print data
+      // GPS::print_data(gps_data);
+      // IMU::print_data(imu_data);
+      // BARO::print_data(baro_data);
+      // RECEIVER::print_data(recv_data);
+//      Serial.println("");
+//      
+//    }
+//  }
+
+//  unsigned long servo_curr = millis();
+//  if(servo_curr - servo_prev >= servo_interval) {
+//    servo_prev = servo_curr;
+//    // ACTUATORS::sweep(left_elevon, right_elevon);
+//  }
+
+  IMU::MPU9250Data imu_data = IMU::read_data(mpu9250);
+
+  filter.update(imu_data.gx,imu_data.gy, imu_data.gz, 
+              imu_data.ax, imu_data.ay, imu_data.az,
+              imu_data.mx, imu_data.my, imu_data.mz);
+
+  Serial.print(filter.getPitch_rad()*180.0f/PI);
+  Serial.print("\t");
+  Serial.print(filter.getRoll_rad()*180.0f/PI);
+  Serial.print("\t");
+  Serial.println(filter.getYaw_rad()*180.0f/PI);
+
+  delay(20);
 }
-
-
-// if(mode == OP_MODE::MANUAL) {
-//         // If we enter manual mode and the last mode we were in is auto, reenable interrupts
-//         if(last_mode != mode) {
-//             last_mode = mode;
-//             init_interrupts();
-//         }
-
-//         left_elevon.writeMicroseconds(measured_pwm[0]);
-//         right_elevon.writeMicroseconds(measured_pwm[1]);
-
-//     } else {
-//         // If we enter automatic mode and the last mode we were in is manual, kill interrupts
-//         if(last_mode != mode) {
-//             last_mode = mode;
-//             terminate_interrupts();
-//         }
-//     }
