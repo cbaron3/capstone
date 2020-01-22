@@ -192,8 +192,6 @@ namespace IMU {
   }
 
   inline void calibrate(MPU9250& imu, SENSOR sensor) {
-    int sensor_mask = (int) sensor;
-
     if(sensor == ACCEL) {
       calibrate_accel(imu);
     } else if (sensor == GYRO) {
