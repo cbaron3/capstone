@@ -29,6 +29,20 @@ PWMServo left_elevon, right_elevon;
 #include "src/uNavAHRS/uNavAHRS.h"
 uNavAHRS filter;
 
+#include "src/Arduino-PID-Library/PID_v1.h"
+
+//     Roll PID stuff
+double roll, pitch, heading;
+int leftOutput, rightOutput; //Output for flaps
+
+double rollSetpoint, rollInput, rollOutput;
+static constexpr double KP = 0.65, KI = 0, KD = 0.05;
+PID rollPID(&rollInput, &rollOutput, &rollSetpoint, KP, KI, KD, DIRECT);
+
+//   PitchPID Stuff
+double pitchSetpoint, pitchInput, pitchOutput;
+PID pitchPID(&pitchInput, &pitchOutput, &pitchSetpoint, KP, KI, KD, DIRECT);
+
 // Data timer
 unsigned long prev = 0;
 const long interval = 2000;
@@ -62,6 +76,15 @@ void setup() {
   //IMU::calibrate(mpu9250, IMU::MAG);
   //IMU::calibrate(mpu9250, IMU::ACCEL);
   // BARO::calibrate();
+
+  rollSetpoint = 0;
+  pitchSetpoint = 0;
+
+  rollPID.SetOutputLimits(-90, 90);
+  pitchPID.SetOutputLimits(-90, 90);
+
+  rollPID.SetMode(AUTOMATIC);
+  pitchPID.SetMode(AUTOMATIC);
 }
 
 void loop() {
@@ -103,11 +126,39 @@ void loop() {
               imu_data.ax, imu_data.ay, imu_data.az,
               imu_data.mx, imu_data.my, imu_data.mz);
 
-  Serial.print(filter.getPitch_rad()*180.0f/PI);
-  Serial.print("\t");
-  Serial.print(filter.getRoll_rad()*180.0f/PI);
-  Serial.print("\t");
-  Serial.println(filter.getYaw_rad()*180.0f/PI);
+  rollInput = filter.getPitch_rad()*180.0f/PI;
+  pitchInput = filter.getRoll_rad()*180.0f/PI;
+  float yaw = filter.getYaw_rad()*180.0f/PI;
 
-  delay(20);
+//  Serial.print(rollInput);
+//  Serial.print("\t");
+//  Serial.print(pitchInput);
+//  Serial.print("\t");
+//  Serial.println(yaw);
+  
+  rollPID.Compute();
+  pitchPID.Compute();
+
+//  Serial.print(rollOutput);
+//  Serial.print("\t");
+//  Serial.print(pitchOutput);
+//  Serial.print("\t");
+//  Serial.println(yaw);
+//  Serial.println("**********");
+
+  Serial.print(pitchInput);
+  Serial.print(",");
+  Serial.print(-1*pitchOutput);
+  Serial.print(",");
+  Serial.print(rollInput);
+  Serial.print(",");
+  Serial.println(-1*rollOutput);
+  
+  leftOutput = ((rollOutput + pitchOutput) / 2) + 90;
+  rightOutput = ((rollOutput - pitchOutput) / 2) + 90;
+
+  left_elevon.write(leftOutput);
+  right_elevon.write(rightOutput);
+
+  delay(5);
 }
