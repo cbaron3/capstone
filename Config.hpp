@@ -5,6 +5,7 @@
  */
  
 #include "Arduino.h"
+#include "src/aero-cpp-lib/include/Data.hpp"
 
 using Pin = unsigned int;
 
@@ -37,9 +38,11 @@ static constexpr Pin RECEIVERS[] = {RECEIVER1, RECEIVER2};
 static constexpr Pin RADIO_CS = 14;
 static constexpr Pin RADIO_RESET = 15;
 static constexpr Pin RADIO_INT = 16;
-static constexpr float RADIO_FREQUENCY = 915.0f;
+static constexpr float RADIO_FREQ = 915.0f;
 static constexpr int RADIO_POWER = 23;
-
+    
 /* GPS */
 static constexpr HardwareSerial *GPS_PORT = &Serial2;
 static constexpr Pin GPS_FIX =  4;
+
+const aero::def::ID THIS_DEVICE = aero::def::ID::G1;

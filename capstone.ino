@@ -1,3 +1,5 @@
+#include "src/aero-cpp-lib/include/Utility.hpp"
+
 // System configuration including pins, debugging, and system mode
 #include "Config.hpp"
 
@@ -20,6 +22,10 @@ MPL3115A2 mpl3115;
 #include "Actuators.hpp"
 PWMServo left_elevon, right_elevon;
 
+// Radio usage
+#include "Radio.hpp"
+RH_RF95 radio {RADIO_CS, RADIO_INT};
+
 // LED usage
 #include "LEDS.hpp"
 
@@ -27,12 +33,11 @@ PWMServo left_elevon, right_elevon;
 #include "Receiver.hpp"
 
 #include "src/uNavAHRS/uNavAHRS.h"
-uNavAHRS filter;
+volatile uNavAHRS filter;
 
 #include "src/Arduino-PID-Library/PID_v1.h"
 
 //     Roll PID stuff
-double roll, pitch, heading;
 int leftOutput, rightOutput; //Output for flaps
 
 double rollSetpoint, rollInput, rollOutput;
@@ -43,15 +48,178 @@ PID rollPID(&rollInput, &rollOutput, &rollSetpoint, KP, KI, KD, DIRECT);
 double pitchSetpoint, pitchInput, pitchOutput;
 PID pitchPID(&pitchInput, &pitchOutput, &pitchSetpoint, KP, KI, KD, DIRECT);
 
+//   PitchPID Stuff
+double headingSetpoint, headingInput, headingOutput;
+PID headingPID(&headingInput, &headingOutput, &headingSetpoint, KP, KI, KD, DIRECT);
+
 // Data timer
 unsigned long prev = 0;
-const long interval = 2000;
+const long interval = 1000;
 
 // Servo timer
 unsigned long servo_prev = 0;
 const long servo_interval = 50;
 
+volatile aero::def::ParsedMessage_t* msg;
+aero::Message message_handler;
+
+// Thread
+#include <TeensyThreads.h>
+
+volatile bool new_msg = false;
+
+unsigned long last_time = 0;
+
+volatile float new_yaw, new_pitch, new_roll;
+
+void thread_radio() {
+  while(true) {
+    if( RADIO::receive(radio, msg) == true && new_msg == false) {
+      if(msg->m_to == THIS_DEVICE) {
+        aero::def::RawMessage_t server_response = message_handler.build(aero::def::ID::G1, aero::def::ID::Plane);
+        bool sent = RADIO::respond(radio, server_response);
+        new_msg = sent;
+      } 
+    } 
+    
+    threads.yield();
+    
+  }
+}
+
+GPS::GPSData gps_data; 
+volatile bool new_gps = false;
+
+void thread_gps() {
+  while(true) {
+    if(GPS::read_sensor(adafruit_gps) == true && new_gps == false) {
+      unsigned long curr = millis();
+      if(curr - prev >= interval) {
+        
+        prev = curr;
+  
+        // Read data
+        gps_data = GPS::read_data(adafruit_gps);
+
+        new_gps = true;
+
+      } 
+    }
+    
+    threads.yield(); 
+    
+  }
+}
+
+IMU::MPU9250Data imu_data;
+BARO::BaroData baro_data;
+volatile bool new_i2c = false;
+volatile unsigned long prev_i2c = 0;
+const unsigned long interval_i2c = 200;
+volatile unsigned long curr_i2c = 0;
+
+void thread_i2c() {
+  /* Read I2C Sensors (IMU, Barometer) */ 
+  while(true) {
+    if(new_i2c == false) {
+      curr_i2c = millis();
+      
+      if(curr_i2c - prev_i2c >= interval_i2c) {
+        prev_i2c = curr_i2c;
+        imu_data = IMU::read_data(mpu9250);
+        baro_data = BARO::read_data(mpl3115);
+        
+        new_i2c = true;
+      }
+    } 
+  }
+
+  threads.yield();
+}
+
+//volatile bool new_ahrs = false;
+//void thread_ahrs() {
+//  while(true) {
+//    if(new_ahrs == false && new_i2c == true) {
+//        filter.update(imu_data.gx,imu_data.gy, imu_data.gz, 
+//                  imu_data.ax, imu_data.ay, imu_data.az,
+//                  imu_data.mx, imu_data.my, imu_data.mz);
+//
+//        new_pitch = filter.getPitch_rad()*180.0f/PI;
+//        new_roll = filter.getRoll_rad()*180.0f/PI;
+//        new_yaw = filter.getYaw_rad()*180.0f/PI;
+//
+//        new_i2c = false;
+//        new_ahrs = true;
+//    }
+//
+//    threads.yield();
+//  }
+//}
+
+RECEIVER::ReceiverData recv_data;
+void thread_manual() {
+  while(true) {
+    /* If manual mode, rewrite to servos */
+    recv_data = RECEIVER::read_data();
+
+    // Get channel data and simply write that to the servos
+    // servo.writeMicroseconds or something
+  }
+}
+
+// This
+void thread_auto() {
+  /* If auto mode, compute PID and write to servos; every new ahrs */
+  while(true) {
+    if(new_i2c == true) {
+      pitchInput = new_pitch;
+      rollInput = new_roll;
+      headingInput = new_yaw;
+
+      pitchPID.Compute();
+      rollPID.Compute();
+      headingPID.Compute();
+
+  //  Serial.print(rollOutput);
+  //  Serial.print("\t");
+  //  Serial.print(pitchOutput);
+  //  Serial.print("\t");
+  //  Serial.println(yaw);
+  //  Serial.println("**********");
+  
+  //  Serial.print(pitchInput);
+  //  Serial.print(",");
+  //  Serial.print(-1*pitchOutput);
+  //  Serial.print(",");
+  //  Serial.print(rollInput);
+  //  Serial.print(",");
+  //  Serial.println(-1*rollOutput);
+    
+  //  leftOutput = ((rollOutput + pitchOutput) / 2) + 90;
+  //  rightOutput = ((rollOutput - pitchOutput) / 2) + 90;
+  //
+  //  left_elevon.write(leftOutput);
+  //  right_elevon.write(rightOutput);
+      
+      new_i2c = false;
+    }
+    
+  }
+}
+
+void thread_setpoint() {
+  while(true) {
+    if(new_gps == true) {
+      /* Calculate setpoint */
+      new_gps = false;
+    }
+  }
+}
+
 void setup() {
+  msg = new aero::def::ParsedMessage_t();
+  
   if(DEBUG_MODE) {
     Serial.begin(115200);
     delay(2500);
@@ -72,93 +240,70 @@ void setup() {
   LEDS::sweep(250);
 
   // TODO: Calibration routes only if specific mode. Need to calibrate gyro and barometer everytime
-  IMU::calibrate(mpu9250, IMU::GYRO);
+  //IMU::calibrate(mpu9250, IMU::GYRO);
   //IMU::calibrate(mpu9250, IMU::MAG);
   //IMU::calibrate(mpu9250, IMU::ACCEL);
   // BARO::calibrate();
 
+  RADIO::init(radio, RADIO_RESET);
+
   rollSetpoint = 0;
   pitchSetpoint = 0;
+  headingSetpoint = 0;
 
   rollPID.SetOutputLimits(-90, 90);
   pitchPID.SetOutputLimits(-90, 90);
+  headingPID.SetOutputLimits(-90, 90);
 
   rollPID.SetMode(AUTOMATIC);
   pitchPID.SetMode(AUTOMATIC);
+  headingPID.SetMode(AUTOMATIC);
+  
+
+  // Add, returns an integer id
+  // Suspend (id)
+  // Restart (id)
+  threads.setMicroTimer(1);
+  threads.addThread(thread_radio);
+  threads.addThread(thread_gps);
+  threads.addThread(thread_i2c);
+  //threads.addThread(thread_ahrs);
+  Serial.println("Setup complete");
 }
 
 void loop() {
-  // Only read data from GPS if valid NMEA received
-//  if(GPS::read_sensor(adafruit_gps) == true) {
-//    unsigned long curr = millis();
-//    if(curr - prev >= interval) {
-//      prev = curr;
+  if(new_msg == true) {
+      Serial.println("Received new message");
 
-      // Read data
-//      GPS::GPSData gps_data = GPS::read_data(adafruit_gps);
-//      IMU::MPU9250Data imu_data = IMU::read_data(mpu9250);
-//      BARO::BaroData baro_data = BARO::read_data(mpl3115);
-//      RECEIVER::ReceiverData recv_data = RECEIVER::read_data();
-//
-//      filter.update(imu_data.gx,imu_data.gy, imu_data.gz, 
-//                    imu_data.ax, imu_data.ay, imu_data.az,
-//                    imu_data.mx, imu_data.my, imu_data.mz);
-//        
-      // Print data
-      // GPS::print_data(gps_data);
-      // IMU::print_data(imu_data);
-      // BARO::print_data(baro_data);
-      // RECEIVER::print_data(recv_data);
-//      Serial.println("");
-//      
-//    }
-//  }
+      if(msg->cmds() != NULL) {
+        if(aero::bit::read(msg->cmds()->pitch, 0)) {
+          Serial.println("Pitch command");
+        }
 
-//  unsigned long servo_curr = millis();
-//  if(servo_curr - servo_prev >= servo_interval) {
-//    servo_prev = servo_curr;
-//    // ACTUATORS::sweep(left_elevon, right_elevon);
-//  }
+        if(aero::bit::read(msg->cmds()->pitch, 7)) {
+          Serial.println("Mode swap command");
 
-  IMU::MPU9250Data imu_data = IMU::read_data(mpu9250);
+          // set flags to false; then terminate auto/setpoint or manual thread. Keep sensor threads alive
+        }
+      }
+      new_msg = false;
+  }
 
-  filter.update(imu_data.gx,imu_data.gy, imu_data.gz, 
-              imu_data.ax, imu_data.ay, imu_data.az,
-              imu_data.mx, imu_data.my, imu_data.mz);
+  if(new_gps == true) {
+    GPS::print_data(gps_data);
+    new_gps = false;
+  }
 
-  rollInput = filter.getPitch_rad()*180.0f/PI;
-  pitchInput = filter.getRoll_rad()*180.0f/PI;
-  float yaw = filter.getYaw_rad()*180.0f/PI;
+  // For some reason, cannot but filter in thread
+  if(new_i2c == true) {
+    filter.update(imu_data.gx,imu_data.gy, imu_data.gz, 
+                  imu_data.ax, imu_data.ay, imu_data.az,
+                  imu_data.mx, imu_data.my, imu_data.mz);
 
-//  Serial.print(rollInput);
-//  Serial.print("\t");
-//  Serial.print(pitchInput);
-//  Serial.print("\t");
-//  Serial.println(yaw);
-  
-  rollPID.Compute();
-  pitchPID.Compute();
-
-//  Serial.print(rollOutput);
-//  Serial.print("\t");
-//  Serial.print(pitchOutput);
-//  Serial.print("\t");
-//  Serial.println(yaw);
-//  Serial.println("**********");
-
-  Serial.print(pitchInput);
-  Serial.print(",");
-  Serial.print(-1*pitchOutput);
-  Serial.print(",");
-  Serial.print(rollInput);
-  Serial.print(",");
-  Serial.println(-1*rollOutput);
-  
-  leftOutput = ((rollOutput + pitchOutput) / 2) + 90;
-  rightOutput = ((rollOutput - pitchOutput) / 2) + 90;
-
-  left_elevon.write(leftOutput);
-  right_elevon.write(rightOutput);
-
-  delay(5);
+    new_pitch = filter.getPitch_rad()*180.0f/PI;
+    new_roll = filter.getRoll_rad()*180.0f/PI;
+    new_yaw = filter.getYaw_rad()*180.0f/PI;
+    Serial.print(new_pitch); Serial.print(" "); Serial.print(new_roll); Serial.print(" "); Serial.println(new_yaw);
+    new_i2c = false;
+  }
 }

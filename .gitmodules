@@ -1,0 +1,3 @@
+[submodule "src/aero-cpp-lib"]
+	path = src/aero-cpp-lib
+	url = https://github.com/UWO-Aero-Design/aero-cpp-lib
