@@ -137,26 +137,6 @@ void thread_i2c() {
   threads.yield();
 }
 
-//volatile bool new_ahrs = false;
-//void thread_ahrs() {
-//  while(true) {
-//    if(new_ahrs == false && new_i2c == true) {
-//        filter.update(imu_data.gx,imu_data.gy, imu_data.gz, 
-//                  imu_data.ax, imu_data.ay, imu_data.az,
-//                  imu_data.mx, imu_data.my, imu_data.mz);
-//
-//        new_pitch = filter.getPitch_rad()*180.0f/PI;
-//        new_roll = filter.getRoll_rad()*180.0f/PI;
-//        new_yaw = filter.getYaw_rad()*180.0f/PI;
-//
-//        new_i2c = false;
-//        new_ahrs = true;
-//    }
-//
-//    threads.yield();
-//  }
-//}
-
 RECEIVER::ReceiverData recv_data;
 void thread_manual() {
   while(true) {
@@ -211,8 +191,8 @@ void thread_auto() {
 void thread_setpoint() {
   while(true) {
     if(new_gps == true) {
-      /* Calculate setpoint */
-      new_gps = false;
+      //GPS::print_data(gps_data);
+      //new_gps = false;
     }
   }
 }
@@ -264,38 +244,39 @@ void setup() {
   // Suspend (id)
   // Restart (id)
   threads.setMicroTimer(1);
+
+  // Always keep radio, gps, and i2c thread alive
   threads.addThread(thread_radio);
   threads.addThread(thread_gps);
   threads.addThread(thread_i2c);
-  //threads.addThread(thread_ahrs);
+
+  // Automatic mode; turn on setpoint and automatic mode threads
+  threads.addThread(thread_setpoint);
+  threads.addThread(thread_auto);
+
+  // Manual mode; turn on manual thread
+  threads.addThread(thread_manual);
+  
   Serial.println("Setup complete");
 }
 
-void loop() {
-  if(new_msg == true) {
-      Serial.println("Received new message");
+void parse_cmds() {
+   Serial.println("Received new message");
 
-      if(msg->cmds() != NULL) {
-        if(aero::bit::read(msg->cmds()->pitch, 0)) {
-          Serial.println("Pitch command");
-        }
+  if(msg->cmds() != NULL) {
+    if(aero::bit::read(msg->cmds()->pitch, 0)) {
+      Serial.println("Pitch command");
+    }
 
-        if(aero::bit::read(msg->cmds()->pitch, 7)) {
-          Serial.println("Mode swap command");
+    if(aero::bit::read(msg->cmds()->pitch, 7)) {
+      Serial.println("Mode swap command");
 
-          // set flags to false; then terminate auto/setpoint or manual thread. Keep sensor threads alive
-        }
-      }
-      new_msg = false;
+      // set flags to false; then terminate auto/setpoint or manual thread. Keep sensor threads alive
+    }
   }
+}
 
-  if(new_gps == true) {
-    GPS::print_data(gps_data);
-    new_gps = false;
-  }
-
-  // For some reason, cannot but filter in thread
-  if(new_i2c == true) {
+void update_ypr() {
     filter.update(imu_data.gx,imu_data.gy, imu_data.gz, 
                   imu_data.ax, imu_data.ay, imu_data.az,
                   imu_data.mx, imu_data.my, imu_data.mz);
@@ -304,6 +285,18 @@ void loop() {
     new_roll = filter.getRoll_rad()*180.0f/PI;
     new_yaw = filter.getYaw_rad()*180.0f/PI;
     Serial.print(new_pitch); Serial.print(" "); Serial.print(new_roll); Serial.print(" "); Serial.println(new_yaw);
+}
+
+void loop() {
+  // Check for new radio commands
+  if(new_msg == true) {
+      parse_cmds();
+      new_msg = false;
+  }
+
+  // For some reason, cannot but filter in thread
+  if(new_i2c == true) {
+    update_ypr();
     new_i2c = false;
   }
 }
