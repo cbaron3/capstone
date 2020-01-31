@@ -72,6 +72,19 @@ unsigned long last_time = 0;
 
 volatile float new_yaw, new_pitch, new_roll;
 
+enum mode_type {MODE_MANUAL = 0, MODE_AUTO = 1};
+mode_type mode = MODE_MANUAL;
+
+
+const int RADIO_ID = 0;
+const int GPS_ID = 1;
+const int I2C_ID = 2;
+const int SETPOINT_ID = 3;
+const int AUTO_ID = 4;
+const int MANUAL_ID = 5;
+
+int thread_ids[6] = {-1};
+
 void thread_radio() {
   while(true) {
     if( RADIO::receive(radio, msg) == true && new_msg == false) {
@@ -197,6 +210,82 @@ void thread_setpoint() {
   }
 }
 
+// Returns id if succeed, else -1
+int suspend_thread(int index) {
+  if(index > (sizeof(thread_ids)/sizeof(thread_ids[0])) || index < 0) {
+    return -1;
+  }
+  
+  if(thread_ids[index] == -1) {
+      return -1;
+  }
+
+  int id = thread_ids[index];
+  
+  if(threads.getState(id) == Threads::RUNNING) {
+    return threads.suspend(id);
+  }
+}
+
+// Returns id if succeed, else -1
+int restart_thread(int index) {
+  if(index > (sizeof(thread_ids)/sizeof(thread_ids[0])) || index < 0) {
+    return -1;
+  }
+  
+  if(thread_ids[index] == -1) {
+      return -1;
+  }
+
+  int id = thread_ids[index];
+  
+  if(threads.getState(id) == Threads::SUSPENDED) {
+    return threads.restart(id);
+  }
+}
+
+void parse_cmds() {
+   Serial.println("Received new message");
+
+  if(msg->cmds() != NULL) {
+    if(aero::bit::read(msg->cmds()->pitch, 0)) {
+      Serial.println("Pitch command");
+    }
+
+    if(aero::bit::read(msg->cmds()->pitch, 7)) {
+      Serial.println("Mode swap command");
+
+      if(mode == MODE_MANUAL) {
+        // If we were in manual mode, stop the manual thread and start the setpoint and auto thread
+        suspend_thread(MANUAL_ID);
+
+        restart_thread(AUTO_ID);
+        restart_thread(SETPOINT_ID);
+        
+        mode = MODE_AUTO;
+      } else {
+        // if we were in auto mode, stop the auto and setpoint thread and start the manual mode thread
+        suspend_thread(AUTO_ID);
+        suspend_thread(SETPOINT_ID);
+
+        restart_thread(MANUAL_ID);
+        mode = MODE_MANUAL;
+      }
+    }
+  }
+}
+
+void update_ypr() {
+    filter.update(imu_data.gx,imu_data.gy, imu_data.gz, 
+                  imu_data.ax, imu_data.ay, imu_data.az,
+                  imu_data.mx, imu_data.my, imu_data.mz);
+
+    new_pitch = filter.getPitch_rad()*180.0f/PI;
+    new_roll = filter.getRoll_rad()*180.0f/PI;
+    new_yaw = filter.getYaw_rad()*180.0f/PI;
+    Serial.print(new_pitch); Serial.print(" "); Serial.print(new_roll); Serial.print(" "); Serial.println(new_yaw);
+}
+
 void setup() {
   msg = new aero::def::ParsedMessage_t();
   
@@ -246,46 +335,33 @@ void setup() {
   threads.setMicroTimer(1);
 
   // Always keep radio, gps, and i2c thread alive
-  threads.addThread(thread_radio);
-  threads.addThread(thread_gps);
-  threads.addThread(thread_i2c);
+  thread_ids[RADIO_ID] = threads.addThread(thread_radio);
+  
+  thread_ids[GPS_ID] = threads.addThread(thread_gps);
+  
+  thread_ids[I2C_ID] = threads.addThread(thread_i2c);
 
   // Automatic mode; turn on setpoint and automatic mode threads
-  threads.addThread(thread_setpoint);
-  threads.addThread(thread_auto);
+  thread_ids[SETPOINT_ID] = threads.addThread(thread_setpoint);
+  thread_ids[AUTO_ID] = threads.addThread(thread_auto);
 
   // Manual mode; turn on manual thread
-  threads.addThread(thread_manual);
+  thread_ids[MANUAL_ID] = threads.addThread(thread_manual);
+
+  // CHECK IF ANY ID IS -1
+  // MAKE A THREAD THAT MONITORS STACK USAGE
+
+  if(mode == MODE_MANUAL) {
+    suspend_thread(AUTO_ID);
+    suspend_thread(SETPOINT_ID);
+  } else {
+    suspend_thread(MANUAL_ID);
+  }
   
   Serial.println("Setup complete");
 }
 
-void parse_cmds() {
-   Serial.println("Received new message");
 
-  if(msg->cmds() != NULL) {
-    if(aero::bit::read(msg->cmds()->pitch, 0)) {
-      Serial.println("Pitch command");
-    }
-
-    if(aero::bit::read(msg->cmds()->pitch, 7)) {
-      Serial.println("Mode swap command");
-
-      // set flags to false; then terminate auto/setpoint or manual thread. Keep sensor threads alive
-    }
-  }
-}
-
-void update_ypr() {
-    filter.update(imu_data.gx,imu_data.gy, imu_data.gz, 
-                  imu_data.ax, imu_data.ay, imu_data.az,
-                  imu_data.mx, imu_data.my, imu_data.mz);
-
-    new_pitch = filter.getPitch_rad()*180.0f/PI;
-    new_roll = filter.getRoll_rad()*180.0f/PI;
-    new_yaw = filter.getYaw_rad()*180.0f/PI;
-    Serial.print(new_pitch); Serial.print(" "); Serial.print(new_roll); Serial.print(" "); Serial.println(new_yaw);
-}
 
 void loop() {
   // Check for new radio commands
