@@ -153,6 +153,8 @@ void thread_i2c() {
 RECEIVER::ReceiverData recv_data;
 void thread_manual() {
   while(true) {
+    Serial.println("Manual mode");
+    delay(500);
     /* If manual mode, rewrite to servos */
     recv_data = RECEIVER::read_data();
 
@@ -166,13 +168,13 @@ void thread_auto() {
   /* If auto mode, compute PID and write to servos; every new ahrs */
   while(true) {
     if(new_i2c == true) {
-      pitchInput = new_pitch;
-      rollInput = new_roll;
-      headingInput = new_yaw;
+      //pitchInput = new_pitch;
+      //rollInput = new_roll;
+      //headingInput = new_yaw;
 
-      pitchPID.Compute();
-      rollPID.Compute();
-      headingPID.Compute();
+      //pitchPID.Compute();
+      //rollPID.Compute();
+      //headingPID.Compute();
 
   //  Serial.print(rollOutput);
   //  Serial.print("\t");
@@ -194,19 +196,24 @@ void thread_auto() {
   //
   //  left_elevon.write(leftOutput);
   //  right_elevon.write(rightOutput);
-      
       new_i2c = false;
+      Serial.println("Auto mode");
+      delay(500);
+      
     }
     
   }
 }
 
 void thread_setpoint() {
+  delay(1000);
   while(true) {
-    if(new_gps == true) {
-      //GPS::print_data(gps_data);
-      //new_gps = false;
-    }
+    Serial.println("Setpoint mode");
+    delay(500);
+//    if(new_gps == true) {
+//      //GPS::print_data(gps_data);
+//      //new_gps = false;
+//    }
   }
 }
 
@@ -261,8 +268,9 @@ void parse_cmds() {
 
         restart_thread(AUTO_ID);
         restart_thread(SETPOINT_ID);
-        
+              
         mode = MODE_AUTO;
+        digitalWrite(LED4, HIGH);
       } else {
         // if we were in auto mode, stop the auto and setpoint thread and start the manual mode thread
         suspend_thread(AUTO_ID);
@@ -270,6 +278,7 @@ void parse_cmds() {
 
         restart_thread(MANUAL_ID);
         mode = MODE_MANUAL;
+        digitalWrite(LED4, LOW);
       }
     }
   }
@@ -371,8 +380,8 @@ void loop() {
   }
 
   // For some reason, cannot but filter in thread
-  if(new_i2c == true) {
-    update_ypr();
-    new_i2c = false;
-  }
+//  if(new_i2c == true) {
+//    update_ypr();
+//    new_i2c = false;
+//  }
 }
