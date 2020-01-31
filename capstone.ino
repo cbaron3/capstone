@@ -257,6 +257,12 @@ void parse_cmds() {
   if(msg->cmds() != NULL) {
     if(aero::bit::read(msg->cmds()->pitch, 0)) {
       Serial.println("Pitch command");
+
+      suspend_thread(MANUAL_ID);
+      suspend_thread(AUTO_ID);
+      suspend_thread(SETPOINT_ID);
+      
+      digitalWrite(LED4, LOW);
     }
 
     if(aero::bit::read(msg->cmds()->pitch, 7)) {
