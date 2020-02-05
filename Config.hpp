@@ -30,8 +30,8 @@ static constexpr Pin SERVO2 = 21;
 static constexpr Pin SERVOS[] = {SERVO1, SERVO2};
 
 /* RECEIVER INPUTS */
-static constexpr Pin RECEIVER1 = 22;
-static constexpr Pin RECEIVER2 = 23;
+static constexpr Pin RECEIVER1 = 22;  // Left elevon
+static constexpr Pin RECEIVER2 = 23;  // Right elevon
 static constexpr Pin RECEIVERS[] = {RECEIVER1, RECEIVER2};
 
 /* RADIO */

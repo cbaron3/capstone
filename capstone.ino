@@ -20,7 +20,7 @@ MPL3115A2 mpl3115;
 
 // Servo functionality
 #include "Actuators.hpp"
-PWMServo left_elevon, right_elevon;
+Servo left_elevon, right_elevon;
 
 // Radio usage
 #include "Radio.hpp"
@@ -52,62 +52,73 @@ PID pitchPID(&pitchInput, &pitchOutput, &pitchSetpoint, KP, KI, KD, DIRECT);
 double headingSetpoint, headingInput, headingOutput;
 PID headingPID(&headingInput, &headingOutput, &headingSetpoint, KP, KI, KD, DIRECT);
 
-// Data timer
-unsigned long prev = 0;
-const long interval = 1000;
+// Threads
+#include "Threads.hpp"
 
-// Servo timer
-unsigned long servo_prev = 0;
-const long servo_interval = 50;
-
-volatile aero::def::ParsedMessage_t* msg;
-aero::Message message_handler;
-
-// Thread
-#include <TeensyThreads.h>
-
-volatile bool new_msg = false;
-
-unsigned long last_time = 0;
-
-volatile float new_yaw, new_pitch, new_roll;
+volatile float new_yaw = 0.0f, new_pitch = 0.0f, new_roll = 0.0f;
 
 enum mode_type {MODE_MANUAL = 0, MODE_AUTO = 1};
 mode_type mode = MODE_MANUAL;
 
+const unsigned long THREAD_DELAY_MS = 1000;
 
-const int RADIO_ID = 0;
-const int GPS_ID = 1;
-const int I2C_ID = 2;
-const int SETPOINT_ID = 3;
-const int AUTO_ID = 4;
-const int MANUAL_ID = 5;
+/********************************************/
+/* Thread for handling radio communications */ 
+/********************************************/
 
-int thread_ids[6] = {-1};
+volatile aero::def::ParsedMessage_t* msg;
+volatile bool new_msg = false;
 
 void thread_radio() {
+  // Wait so thread does not start right away
+  delay(THREAD_DELAY_MS);
+
+  // Message handler for building a response
+  aero::Message message_handler;
+  
+  // Thread loop
   while(true) {
-    if( RADIO::receive(radio, msg) == true && new_msg == false) {
+    
+    // Keep checking for a new radio message
+    if( RADIO::receive(radio, msg) == true) {
+      
+      // Only accept message if it was addressed to this grlider
       if(msg->m_to == THIS_DEVICE) {
-        aero::def::RawMessage_t server_response = message_handler.build(aero::def::ID::G1, aero::def::ID::Plane);
+
+        // Build response and set flag if response was succesfully sent
+        aero::def::RawMessage_t server_response = message_handler.build(aero::def::ID::G1, aero::def::ID::Gnd);
         bool sent = RADIO::respond(radio, server_response);
         new_msg = sent;
       } 
     } 
     
     threads.yield();
-    
   }
 }
+
+/******************************/
+/* Thread for polling the GPS */ 
+/******************************/
 
 GPS::GPSData gps_data; 
 volatile bool new_gps = false;
 
+const long GPS_INTERVAL_MS = 1000;
+
 void thread_gps() {
+  // Wait so thread does not start right away
+  delay(THREAD_DELAY_MS);
+  unsigned long prev = 0, curr = 0;
+  
+  // Thread loop
   while(true) {
+
+    // Check if new gps data is available to parse
     if(GPS::read_sensor(adafruit_gps) == true && new_gps == false) {
-      unsigned long curr = millis();
-      if(curr - prev >= interval) {
+      
+      // Limit update rate for GPS to make sure parsing is not affected
+      curr = millis();
+      if(curr - prev >= GPS_INTERVAL_MS) {
         
         prev = curr;
   
@@ -120,134 +131,133 @@ void thread_gps() {
     }
     
     threads.yield(); 
-    
   }
 }
 
+/*************************************/
+/* Thread for polling the I2C sensor */ 
+/*************************************/
+
 IMU::MPU9250Data imu_data;
 BARO::BaroData baro_data;
+
 volatile bool new_i2c = false;
-volatile unsigned long prev_i2c = 0;
-const unsigned long interval_i2c = 200;
-volatile unsigned long curr_i2c = 0;
+const unsigned long I2C_INTERVAL_MS = 20;
 
 void thread_i2c() {
-  /* Read I2C Sensors (IMU, Barometer) */ 
+  // Wait so thread does not start right away
+  delay(THREAD_DELAY_MS);
+
+  unsigned long prev = 0, curr = 0;
+
+  // Thread loop
   while(true) {
+    
     if(new_i2c == false) {
-      curr_i2c = millis();
-      
-      if(curr_i2c - prev_i2c >= interval_i2c) {
-        prev_i2c = curr_i2c;
+
+      // Keep update rate for sensors at 20 Hz
+      curr = millis();
+      if(curr - prev >= I2C_INTERVAL_MS) {
+        prev = curr;
+
+        // Read data
         imu_data = IMU::read_data(mpu9250);
         baro_data = BARO::read_data(mpl3115);
         
         new_i2c = true;
       }
-    } 
-  }
+    }
 
-  threads.yield();
+   threads.yield();
+  }
 }
+
+/********************************************/
+/* Thread for handling manual servo control */ 
+/********************************************/
+
+const unsigned long MANUAL_INTERVAL_MS = 5;
 
 RECEIVER::ReceiverData recv_data;
-void thread_manual() {
-  while(true) {
-    Serial.println("Manual mode");
-    delay(500);
-    /* If manual mode, rewrite to servos */
-    recv_data = RECEIVER::read_data();
 
-    // Get channel data and simply write that to the servos
-    // servo.writeMicroseconds or something
+void thread_manual() {
+  // Wait so thread does not start right away
+  delay(THREAD_DELAY_MS);
+
+  unsigned long prev = 0, curr = 0;
+  
+  // Thread loop
+  while(true) {
+
+    curr = millis();
+    if(curr - prev >= MANUAL_INTERVAL_MS) {
+      // Read data
+      recv_data = RECEIVER::read_data();
+
+      // Could use write microseconds or analog write
+      left_elevon.writeMicroseconds(recv_data.recv1);
+      right_elevon.writeMicroseconds(recv_data.recv2);
+    }
+
+    // Don't think I should yield this THREADS, it is important
+    // threads.yield();
   }
 }
 
-// This
+/***********************************************/
+/* Thread for automatic control; stabilization */ 
+/***********************************************/
+
+volatile bool new_ypr = false;
+
 void thread_auto() {
-  /* If auto mode, compute PID and write to servos; every new ahrs */
+  // Wait so thread does not start right away
+  delay(THREAD_DELAY_MS);
+
+  // Thread loop
   while(true) {
-    if(new_i2c == true) {
-      //pitchInput = new_pitch;
-      //rollInput = new_roll;
-      //headingInput = new_yaw;
+    if(new_ypr == true) {
+      // Set PID inputs
+      pitchInput = new_pitch;
+      rollInput = new_roll;
+      headingInput = new_yaw;
 
-      //pitchPID.Compute();
-      //rollPID.Compute();
-      //headingPID.Compute();
+      // PID computations
+      pitchPID.Compute();
+      rollPID.Compute();
+      headingPID.Compute();
 
-  //  Serial.print(rollOutput);
-  //  Serial.print("\t");
-  //  Serial.print(pitchOutput);
-  //  Serial.print("\t");
-  //  Serial.println(yaw);
-  //  Serial.println("**********");
+      // rollOutput = -1 * rollOutput;
+      // pitchOutput = -1 * pitchOutput;
+      // headingOutput = -1 * headingOutput;
+
+      // Basic elevon mixing; needs to be improveed
+      leftOutput = ((rollOutput + pitchOutput) / 2) + 90;
+      rightOutput = ((rollOutput - pitchOutput) / 2) + 90;
   
-  //  Serial.print(pitchInput);
-  //  Serial.print(",");
-  //  Serial.print(-1*pitchOutput);
-  //  Serial.print(",");
-  //  Serial.print(rollInput);
-  //  Serial.print(",");
-  //  Serial.println(-1*rollOutput);
-    
-  //  leftOutput = ((rollOutput + pitchOutput) / 2) + 90;
-  //  rightOutput = ((rollOutput - pitchOutput) / 2) + 90;
-  //
-  //  left_elevon.write(leftOutput);
-  //  right_elevon.write(rightOutput);
-      new_i2c = false;
-      Serial.println("Auto mode");
-      delay(500);
+      left_elevon.write(leftOutput);
+      right_elevon.write(rightOutput);
       
+      new_ypr = false;
     }
-    
+
+    // Don't think I should yield this THREADS, it is important
+    // threads.yield();
   }
 }
 
 void thread_setpoint() {
-  delay(1000);
+   // Wait so thread does not start right away
+  delay(THREAD_DELAY_MS);
+
+  // Thread loop
   while(true) {
-    Serial.println("Setpoint mode");
-    delay(500);
-//    if(new_gps == true) {
-//      //GPS::print_data(gps_data);
-//      //new_gps = false;
-//    }
-  }
-}
+    if(new_gps == true) {
+      /* Compute setpoint here */
+      new_gps = false;
+    }
 
-// Returns id if succeed, else -1
-int suspend_thread(int index) {
-  if(index > (sizeof(thread_ids)/sizeof(thread_ids[0])) || index < 0) {
-    return -1;
-  }
-  
-  if(thread_ids[index] == -1) {
-      return -1;
-  }
-
-  int id = thread_ids[index];
-  
-  if(threads.getState(id) == Threads::RUNNING) {
-    return threads.suspend(id);
-  }
-}
-
-// Returns id if succeed, else -1
-int restart_thread(int index) {
-  if(index > (sizeof(thread_ids)/sizeof(thread_ids[0])) || index < 0) {
-    return -1;
-  }
-  
-  if(thread_ids[index] == -1) {
-      return -1;
-  }
-
-  int id = thread_ids[index];
-  
-  if(threads.getState(id) == Threads::SUSPENDED) {
-    return threads.restart(id);
+    threads.yield();
   }
 }
 
@@ -257,12 +267,6 @@ void parse_cmds() {
   if(msg->cmds() != NULL) {
     if(aero::bit::read(msg->cmds()->pitch, 0)) {
       Serial.println("Pitch command");
-
-      suspend_thread(MANUAL_ID);
-      suspend_thread(AUTO_ID);
-      suspend_thread(SETPOINT_ID);
-      
-      digitalWrite(LED4, LOW);
     }
 
     if(aero::bit::read(msg->cmds()->pitch, 7)) {
@@ -270,27 +274,28 @@ void parse_cmds() {
 
       if(mode == MODE_MANUAL) {
         // If we were in manual mode, stop the manual thread and start the setpoint and auto thread
-        suspend_thread(MANUAL_ID);
-
-        restart_thread(AUTO_ID);
-        restart_thread(SETPOINT_ID);
-              
+        THREADS::suspend(MANUAL_ID);
+        RECEIVER::terminate_interrupts();
+        
+        THREADS::restart(AUTO_ID);
+        THREADS::restart(SETPOINT_ID);
+        
         mode = MODE_AUTO;
-        digitalWrite(LED4, HIGH);
       } else {
         // if we were in auto mode, stop the auto and setpoint thread and start the manual mode thread
-        suspend_thread(AUTO_ID);
-        suspend_thread(SETPOINT_ID);
+        THREADS::suspend(AUTO_ID);
+        THREADS::suspend(SETPOINT_ID);
 
-        restart_thread(MANUAL_ID);
+        RECEIVER::start_interrupts();
+        THREADS::restart(MANUAL_ID);
         mode = MODE_MANUAL;
-        digitalWrite(LED4, LOW);
       }
     }
   }
 }
 
 void update_ypr() {
+    // NOTE: This will take two minute for good results!
     filter.update(imu_data.gx,imu_data.gy, imu_data.gz, 
                   imu_data.ax, imu_data.ay, imu_data.az,
                   imu_data.mx, imu_data.my, imu_data.mz);
@@ -298,7 +303,8 @@ void update_ypr() {
     new_pitch = filter.getPitch_rad()*180.0f/PI;
     new_roll = filter.getRoll_rad()*180.0f/PI;
     new_yaw = filter.getYaw_rad()*180.0f/PI;
-    Serial.print(new_pitch); Serial.print(" "); Serial.print(new_roll); Serial.print(" "); Serial.println(new_yaw);
+    
+    new_ypr = true;
 }
 
 void setup() {
@@ -317,7 +323,7 @@ void setup() {
   // Initialize servos and receiver input
   ACTUATORS::init(left_elevon, right_elevon);
   RECEIVER::init();
-  RECEIVER::init_interrupts();
+  RECEIVER::start_interrupts();
   
   // Initialize leds with simple animation
   LEDS::init();
@@ -343,40 +349,32 @@ void setup() {
   pitchPID.SetMode(AUTOMATIC);
   headingPID.SetMode(AUTOMATIC);
   
-
-  // Add, returns an integer id
-  // Suspend (id)
-  // Restart (id)
   threads.setMicroTimer(1);
 
   // Always keep radio, gps, and i2c thread alive
-  thread_ids[RADIO_ID] = threads.addThread(thread_radio);
+  THREADS::ids[RADIO_ID]  = threads.addThread(thread_radio);
+  THREADS::ids[GPS_ID]    = threads.addThread(thread_gps);
+  THREADS::ids[I2C_ID]    = threads.addThread(thread_i2c);
   
-  thread_ids[GPS_ID] = threads.addThread(thread_gps);
-  
-  thread_ids[I2C_ID] = threads.addThread(thread_i2c);
-
   // Automatic mode; turn on setpoint and automatic mode threads
-  thread_ids[SETPOINT_ID] = threads.addThread(thread_setpoint);
-  thread_ids[AUTO_ID] = threads.addThread(thread_auto);
+  THREADS::ids[SETPOINT_ID] = threads.addThread(thread_setpoint);
+  THREADS::ids[AUTO_ID]     = threads.addThread(thread_auto);
 
   // Manual mode; turn on manual thread
-  thread_ids[MANUAL_ID] = threads.addThread(thread_manual);
+  THREADS::ids[MANUAL_ID] = threads.addThread(thread_manual);
 
-  // CHECK IF ANY ID IS -1
-  // MAKE A THREAD THAT MONITORS STACK USAGE
+  // TODO: MAKE A THREAD THAT MONITORS STACK USAGE
 
   if(mode == MODE_MANUAL) {
-    suspend_thread(AUTO_ID);
-    suspend_thread(SETPOINT_ID);
+    THREADS::suspend(AUTO_ID);
+    THREADS::suspend(SETPOINT_ID);
+    RECEIVER::terminate_interrupts();
   } else {
-    suspend_thread(MANUAL_ID);
+    THREADS::suspend(MANUAL_ID);
   }
   
   Serial.println("Setup complete");
 }
-
-
 
 void loop() {
   // Check for new radio commands
@@ -385,9 +383,9 @@ void loop() {
       new_msg = false;
   }
 
-  // For some reason, cannot but filter in thread
-//  if(new_i2c == true) {
-//    update_ypr();
-//    new_i2c = false;
-//  }
+  // For some reason, cannot put filter in thread
+  if(new_i2c == true) {
+    update_ypr();
+    new_i2c = false;
+  }
 }

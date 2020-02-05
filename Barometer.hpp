@@ -29,7 +29,8 @@ namespace BARO {
 
     // Use altimeter mode. The other settings are taken from example programs
     baro.setModeAltimeter();
-    baro.setOversampleRate(7);
+    // Sampling intervals of 0=6 ms , 1=10, 2=18, 3=34, 4=66, 5=130, 6=258, and 7=512
+    baro.setOversampleRate(2);
     baro.enableEventFlags();
   }
 

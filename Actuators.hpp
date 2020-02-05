@@ -1,14 +1,14 @@
 #pragma once
 
-#include <PWMServo.h>
+#include <Servo.h>
 
 namespace ACTUATORS {
-  inline void init(PWMServo& left_elevon, PWMServo& right_elevon) {
+  inline void init(Servo& left_elevon, Servo& right_elevon) {
     left_elevon.attach(SERVO1);
     right_elevon.attach(SERVO2);
   }
 
-  inline void sweep(PWMServo& left, PWMServo& right) {
+  inline void sweep(Servo& left, Servo& right) {
     static int angle = 0;
     static int delta = 1;
     static bool left_flag = true;

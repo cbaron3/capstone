@@ -36,9 +36,9 @@ namespace RECEIVER {
     }
   }
   
-  void init_interrupts(void) {
-    attachInterrupt(digitalPinToInterrupt(RECEIVERS[0]),measure_recv1, CHANGE);
-    attachInterrupt(digitalPinToInterrupt(RECEIVERS[1]),measure_recv2, CHANGE);
+  void start_interrupts(void) {
+    attachInterrupt(digitalPinToInterrupt(RECEIVERS[0]), measure_recv1, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(RECEIVERS[1]), measure_recv2, CHANGE);
   }
   
   void terminate_interrupts(void) {
