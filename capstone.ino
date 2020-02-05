@@ -41,7 +41,7 @@ volatile uNavAHRS filter;
 int leftOutput, rightOutput; //Output for flaps
 
 double rollSetpoint, rollInput, rollOutput;
-static constexpr double KP = 0.65, KI = 0, KD = 0.05;
+static constexpr double KP = 1, KI = 0, KD = 0;
 PID rollPID(&rollInput, &rollOutput, &rollSetpoint, KP, KI, KD, DIRECT);
 
 //   PitchPID Stuff
@@ -142,6 +142,7 @@ IMU::MPU9250Data imu_data;
 BARO::BaroData baro_data;
 
 volatile bool new_i2c = false;
+// use 100
 const unsigned long I2C_INTERVAL_MS = 20;
 
 void thread_i2c() {
@@ -176,7 +177,7 @@ void thread_i2c() {
 /* Thread for handling manual servo control */ 
 /********************************************/
 
-const unsigned long MANUAL_INTERVAL_MS = 5;
+const unsigned long MANUAL_INTERVAL_MS = 10;
 
 RECEIVER::ReceiverData recv_data;
 
@@ -184,19 +185,41 @@ void thread_manual() {
   // Wait so thread does not start right away
   delay(THREAD_DELAY_MS);
 
+  // Only used for debugging
+  int servo_ms = 1000;
+    
   unsigned long prev = 0, curr = 0;
   
   // Thread loop
   while(true) {
 
+    // Read data
+    recv_data = RECEIVER::read_data();
+      
     curr = millis();
     if(curr - prev >= MANUAL_INTERVAL_MS) {
-      // Read data
-      recv_data = RECEIVER::read_data();
+      prev = curr;
+      
+//      // Could use write microseconds or analog write
+//      left_elevon.writeMicroseconds(recv_data.recv1);
+//      right_elevon.writeMicroseconds(recv_data.recv2);
 
-      // Could use write microseconds or analog write
-      left_elevon.writeMicroseconds(recv_data.recv1);
-      right_elevon.writeMicroseconds(recv_data.recv2);
+      if(!DEBUG_MANUAL_MODE) {
+        left_elevon.writeMicroseconds(recv_data.recv1);
+        right_elevon.writeMicroseconds(recv_data.recv2);
+      } else {
+        // Debugging manual mode
+        left_elevon.writeMicroseconds(servo_ms);
+        right_elevon.writeMicroseconds(servo_ms);
+  
+        servo_ms += 1;
+        if(servo_ms >= 2000) {
+          servo_ms = 1000;
+        }
+      }
+
+    } else {
+      threads.yield();
     }
 
     // Don't think I should yield this THREADS, it is important
@@ -209,12 +232,18 @@ void thread_manual() {
 /***********************************************/
 
 volatile bool new_ypr = false;
+const unsigned long AUTO_INTERVAL_MS = 5;
 
 void thread_auto() {
   // Wait so thread does not start right away
   delay(THREAD_DELAY_MS);
 
-  // Thread loop
+  unsigned long prev = 0, curr = 0;
+
+  int left_angle = 0;
+  int right_angle  = 0;
+
+  // Thread loop; update rate dependent on the update rate of I2C sensors
   while(true) {
     if(new_ypr == true) {
       // Set PID inputs
@@ -227,16 +256,38 @@ void thread_auto() {
       rollPID.Compute();
       headingPID.Compute();
 
-      // rollOutput = -1 * rollOutput;
-      // pitchOutput = -1 * pitchOutput;
-      // headingOutput = -1 * headingOutput;
+      rollOutput = -1 * rollOutput;
+      pitchOutput = -1 * pitchOutput;
+      headingOutput = -1 * headingOutput;
+
+      //Serial.println(rollOutput);
+      //Serial.println(pitchOutput);
 
       // Basic elevon mixing; needs to be improveed
       leftOutput = ((rollOutput + pitchOutput) / 2) + 90;
       rightOutput = ((rollOutput - pitchOutput) / 2) + 90;
-  
-      left_elevon.write(leftOutput);
-      right_elevon.write(rightOutput);
+
+      
+
+      if(left_angle > leftOutput) {
+        left_angle -= 1;
+      } else if(left_angle < leftOutput) {
+        left_angle += 1;
+      }
+
+      if(right_angle > rightOutput) {
+        right_angle -= 1;
+      } else if(right_angle < rightOutput) {
+        right_angle += 1;
+      }
+
+      Serial.print("L -- "); Serial.print(leftOutput); Serial.print(" "); Serial.println(left_angle);
+      Serial.print("R -- "); Serial.print(rightOutput); Serial.print(" "); Serial.println(right_angle);
+      
+      left_elevon.write(left_angle);
+      right_elevon.write(right_angle);
+
+      //delay(5);
       
       new_ypr = false;
     }
@@ -273,6 +324,7 @@ void parse_cmds() {
       Serial.println("Mode swap command");
 
       if(mode == MODE_MANUAL) {
+        Serial.println("Starting auto mode...");
         // If we were in manual mode, stop the manual thread and start the setpoint and auto thread
         THREADS::suspend(MANUAL_ID);
         RECEIVER::terminate_interrupts();
@@ -282,6 +334,7 @@ void parse_cmds() {
         
         mode = MODE_AUTO;
       } else {
+        Serial.println("Starting manual mode...");
         // if we were in auto mode, stop the auto and setpoint thread and start the manual mode thread
         THREADS::suspend(AUTO_ID);
         THREADS::suspend(SETPOINT_ID);
@@ -346,8 +399,11 @@ void setup() {
   headingPID.SetOutputLimits(-90, 90);
 
   rollPID.SetMode(AUTOMATIC);
+  rollPID.SetSampleTime(I2C_INTERVAL_MS);
   pitchPID.SetMode(AUTOMATIC);
+  pitchPID.SetSampleTime(I2C_INTERVAL_MS);
   headingPID.SetMode(AUTOMATIC);
+  headingPID.SetSampleTime(I2C_INTERVAL_MS);
   
   threads.setMicroTimer(1);
 
