@@ -41,7 +41,7 @@ volatile uNavAHRS filter;
 int leftOutput, rightOutput; //Output for flaps
 
 double rollSetpoint, rollInput, rollOutput;
-static constexpr double KP = 1, KI = 0, KD = 0;
+
 PID rollPID(&rollInput, &rollOutput, &rollSetpoint, KP, KI, KD, DIRECT);
 
 //   PitchPID Stuff
@@ -143,7 +143,7 @@ BARO::BaroData baro_data;
 
 volatile bool new_i2c = false;
 // use 100
-const unsigned long I2C_INTERVAL_MS = 20;
+const unsigned long I2C_INTERVAL_MS = SAMPLE_TIME_MS;
 
 void thread_i2c() {
   // Wait so thread does not start right away
@@ -185,9 +185,6 @@ void thread_manual() {
   // Wait so thread does not start right away
   delay(THREAD_DELAY_MS);
 
-  // Only used for debugging
-  int servo_ms = 1000;
-    
   unsigned long prev = 0, curr = 0;
   
   // Thread loop
@@ -199,24 +196,9 @@ void thread_manual() {
     curr = millis();
     if(curr - prev >= MANUAL_INTERVAL_MS) {
       prev = curr;
-      
-//      // Could use write microseconds or analog write
-//      left_elevon.writeMicroseconds(recv_data.recv1);
-//      right_elevon.writeMicroseconds(recv_data.recv2);
 
-      if(!DEBUG_MANUAL_MODE) {
-        left_elevon.writeMicroseconds(recv_data.recv1);
-        right_elevon.writeMicroseconds(recv_data.recv2);
-      } else {
-        // Debugging manual mode
-        left_elevon.writeMicroseconds(servo_ms);
-        right_elevon.writeMicroseconds(servo_ms);
-  
-        servo_ms += 1;
-        if(servo_ms >= 2000) {
-          servo_ms = 1000;
-        }
-      }
+      left_elevon.writeMicroseconds(recv_data.recv1);
+      right_elevon.writeMicroseconds(recv_data.recv2);
 
     } else {
       threads.yield();
@@ -260,14 +242,9 @@ void thread_auto() {
       pitchOutput = -1 * pitchOutput;
       headingOutput = -1 * headingOutput;
 
-      //Serial.println(rollOutput);
-      //Serial.println(pitchOutput);
-
       // Basic elevon mixing; needs to be improveed
       leftOutput = ((rollOutput + pitchOutput) / 2) + 90;
       rightOutput = ((rollOutput - pitchOutput) / 2) + 90;
-
-      
 
       if(left_angle > leftOutput) {
         left_angle -= 1;
@@ -280,14 +257,9 @@ void thread_auto() {
       } else if(right_angle < rightOutput) {
         right_angle += 1;
       }
-
-      Serial.print("L -- "); Serial.print(leftOutput); Serial.print(" "); Serial.println(left_angle);
-      Serial.print("R -- "); Serial.print(rightOutput); Serial.print(" "); Serial.println(right_angle);
       
       left_elevon.write(left_angle);
       right_elevon.write(right_angle);
-
-      //delay(5);
       
       new_ypr = false;
     }
@@ -312,42 +284,60 @@ void thread_setpoint() {
   }
 }
 
-void parse_cmds() {
-   Serial.println("Received new message");
+/**
+ * @brief Parse a message for commands and take the appropriate action
+ */
+void parse_cmds(void) {
+  int id = static_cast<int>(msg->m_from);
+  DEBUG_PRINT("Received radio message from: "); DEBUG_PRINTLN(NAMES[id]);
 
+  // If we received command information
   if(msg->cmds() != NULL) {
+
+    // Check for the pitch bit
     if(aero::bit::read(msg->cmds()->pitch, 0)) {
-      Serial.println("Pitch command");
+      DEBUG_PRINTLN("Pitch Command");
     }
 
     if(aero::bit::read(msg->cmds()->pitch, 7)) {
-      Serial.println("Mode swap command");
+      DEBUG_PRINT("Mode Swap Command: ");
 
       if(mode == MODE_MANUAL) {
-        Serial.println("Starting auto mode...");
-        // If we were in manual mode, stop the manual thread and start the setpoint and auto thread
+        // Device is currently in manual mode therefore we will swap to auto
+        DEBUG_PRINTLN("Changing from manual to auto");
+
+        // If we were in manual mode, stop the manual thread and interrupts; start the setpoint and auto thread
         THREADS::suspend(MANUAL_ID);
         RECEIVER::terminate_interrupts();
         
         THREADS::restart(AUTO_ID);
         THREADS::restart(SETPOINT_ID);
         
+        // Assign mode
         mode = MODE_AUTO;
       } else {
-        Serial.println("Starting manual mode...");
-        // if we were in auto mode, stop the auto and setpoint thread and start the manual mode thread
+        // Device is currently in auto mode therefore we will swap to manual
+        DEBUG_PRINTLN("Changing from auto to manual");
+
+        // If we were in auto mode, stop the auto and setpoint thread; start the manual mode thread and interrupts
         THREADS::suspend(AUTO_ID);
         THREADS::suspend(SETPOINT_ID);
 
         RECEIVER::start_interrupts();
         THREADS::restart(MANUAL_ID);
+
+        // Assign mode
         mode = MODE_MANUAL;
       }
     }
   }
 }
 
-void update_ypr() {
+/**
+ * @brief Update the kalman filter values
+ * @details Results in a flag being set that lets the auto thread know that new data has been received
+ */
+void update_ypr(void) {
     // NOTE: This will take two minute for good results!
     filter.update(imu_data.gx,imu_data.gy, imu_data.gz, 
                   imu_data.ax, imu_data.ay, imu_data.az,
@@ -357,16 +347,17 @@ void update_ypr() {
     new_roll = filter.getRoll_rad()*180.0f/PI;
     new_yaw = filter.getYaw_rad()*180.0f/PI;
     
+    // Alert thread_auto that YPR has been updated
     new_ypr = true;
 }
 
 void setup() {
-  msg = new aero::def::ParsedMessage_t();
-  
-  if(DEBUG_MODE) {
-    Serial.begin(115200);
-    delay(2500);
-  }
+  // Initialization LEDs
+  LEDS::init();
+  LEDS::on(POWER_LED);
+
+  // Initialize serial
+  DEBUG_START(115200);
 
   // Initialize sensors
   IMU::init(mpu9250);
@@ -378,33 +369,34 @@ void setup() {
   RECEIVER::init();
   RECEIVER::start_interrupts();
   
-  // Initialize leds with simple animation
-  LEDS::init();
-  LEDS::sweep(250);
-
-  // TODO: Calibration routes only if specific mode. Need to calibrate gyro and barometer everytime
-  //IMU::calibrate(mpu9250, IMU::GYRO);
-  //IMU::calibrate(mpu9250, IMU::MAG);
-  //IMU::calibrate(mpu9250, IMU::ACCEL);
-  // BARO::calibrate();
-
+  // Initialize radio and msg that contains last received radio message
   RADIO::init(radio, RADIO_RESET);
+  msg = new aero::def::ParsedMessage_t();
 
-  rollSetpoint = 0;
-  pitchSetpoint = 0;
-  headingSetpoint = 0;
+  // Call calibration routines if necessary
+  // NOTE: Accel and Mag save results in EEPROM
+  if(CALIBRATE_ACCEL) IMU::calibrate(mpu9250, IMU::ACCEL);
+  if(CALIBRATE_GYRO)  IMU::calibrate(mpu9250, IMU::GYRO);
+  if(CALIBRATE_MAG)   IMU::calibrate(mpu9250, IMU::MAG);
+  if(CALIBRATE_BARO)  BARO::calibrate();
 
-  rollPID.SetOutputLimits(-90, 90);
-  pitchPID.SetOutputLimits(-90, 90);
-  headingPID.SetOutputLimits(-90, 90);
+  // Initialize PID
+  rollSetpoint = DEFAULT_ROLL_SETPOINT;
+  pitchSetpoint = DEFAULT_PITCH_SETPOINT;
+  headingSetpoint = DEFAULT_YAW_SETPOINT;
+
+  rollPID.SetOutputLimits(ROLL_MIN_LIMIT, ROLL_MAX_LIMIT);
+  pitchPID.SetOutputLimits(PITCH_MIN_LIMIT, PITCH_MAX_LIMIT);
+  headingPID.SetOutputLimits(YAW_MIN_LIMIT, YAW_MAX_LIMIT);
 
   rollPID.SetMode(AUTOMATIC);
-  rollPID.SetSampleTime(I2C_INTERVAL_MS);
+  rollPID.SetSampleTime(SAMPLE_TIME_MS);
   pitchPID.SetMode(AUTOMATIC);
-  pitchPID.SetSampleTime(I2C_INTERVAL_MS);
+  pitchPID.SetSampleTime(SAMPLE_TIME_MS);
   headingPID.SetMode(AUTOMATIC);
-  headingPID.SetSampleTime(I2C_INTERVAL_MS);
+  headingPID.SetSampleTime(SAMPLE_TIME_MS);
   
+  // Initialize threads
   threads.setMicroTimer(1);
 
   // Always keep radio, gps, and i2c thread alive
@@ -419,14 +411,14 @@ void setup() {
   // Manual mode; turn on manual thread
   THREADS::ids[MANUAL_ID] = threads.addThread(thread_manual);
 
-  // TODO: MAKE A THREAD THAT MONITORS STACK USAGE
-
+  // If we boot in manual mode; immediately suspend the automatic and setpoint threads
   if(mode == MODE_MANUAL) {
     THREADS::suspend(AUTO_ID);
     THREADS::suspend(SETPOINT_ID);
-    RECEIVER::terminate_interrupts();
+    
   } else {
     THREADS::suspend(MANUAL_ID);
+    RECEIVER::terminate_interrupts();
   }
   
   Serial.println("Setup complete");
