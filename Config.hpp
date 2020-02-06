@@ -15,7 +15,7 @@ static constexpr BOOT_MODE MODE = BOOT_MODE::LED_TEST_RANDOM;
 
 /* SYSTEM FLAGS */
 static constexpr bool DEBUG_MODE = true;  // Block usage of Serial printing if not debugging to speed up system
-static constexpr bool DEBUG_MANUAL_MODE = true; // Use fake values for debugging manual
+static constexpr bool DEBUG_MANUAL_MODE = false; // Use fake values for debugging manual
 
 /* LEDS */
 static constexpr Pin LED1 = 8;

@@ -179,7 +179,7 @@ void thread_i2c() {
 
 const unsigned long MANUAL_INTERVAL_MS = 10;
 
-RECEIVER::ReceiverData recv_data;
+
 
 void thread_manual() {
   // Wait so thread does not start right away
@@ -189,12 +189,12 @@ void thread_manual() {
   int servo_ms = 1000;
     
   unsigned long prev = 0, curr = 0;
+  RECEIVER::ReceiverData recv_data;
   
   // Thread loop
   while(true) {
 
-    // Read data
-    recv_data = RECEIVER::read_data();
+    
       
     curr = millis();
     if(curr - prev >= MANUAL_INTERVAL_MS) {
@@ -205,8 +205,12 @@ void thread_manual() {
 //      right_elevon.writeMicroseconds(recv_data.recv2);
 
       if(!DEBUG_MANUAL_MODE) {
+        // Read data
+        recv_data = RECEIVER::read_data();
         left_elevon.writeMicroseconds(recv_data.recv1);
         right_elevon.writeMicroseconds(recv_data.recv2);
+        //Serial.print("Recv 1: "); Serial.println(recv_data.recv1);
+        //Serial.print("Recv 2: "); Serial.println(recv_data.recv2);
       } else {
         // Debugging manual mode
         left_elevon.writeMicroseconds(servo_ms);
@@ -219,11 +223,11 @@ void thread_manual() {
       }
 
     } else {
-      threads.yield();
+      //threads.yield();
     }
 
     // Don't think I should yield this THREADS, it is important
-    // threads.yield();
+    threads.yield();
   }
 }
 
@@ -240,8 +244,8 @@ void thread_auto() {
 
   unsigned long prev = 0, curr = 0;
 
-  int left_angle = 0;
-  int right_angle  = 0;
+  int left_angle = 90;
+  int right_angle  = 90;
 
   // Thread loop; update rate dependent on the update rate of I2C sensors
   while(true) {
@@ -424,9 +428,10 @@ void setup() {
   if(mode == MODE_MANUAL) {
     THREADS::suspend(AUTO_ID);
     THREADS::suspend(SETPOINT_ID);
-    RECEIVER::terminate_interrupts();
+    //
   } else {
     THREADS::suspend(MANUAL_ID);
+    RECEIVER::terminate_interrupts();
   }
   
   Serial.println("Setup complete");
