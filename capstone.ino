@@ -33,7 +33,7 @@ RH_RF95 radio {RADIO_CS, RADIO_INT};
 #include "Receiver.hpp"
 
 #include "src/uNavAHRS/uNavAHRS.h"
-volatile uNavAHRS filter;
+uNavAHRS filter;
 
 #include "src/Arduino-PID-Library/PID_v1.h"
 
@@ -87,7 +87,9 @@ void thread_radio() {
 
         // Build response and set flag if response was succesfully sent
         aero::def::RawMessage_t server_response = message_handler.build(aero::def::ID::G1, aero::def::ID::Gnd);
+        LEDS::on(RADIO_LED);
         bool sent = RADIO::respond(radio, server_response);
+        LEDS::off(RADIO_LED);
         new_msg = sent;
       } 
     } 
@@ -220,10 +222,8 @@ void thread_auto() {
   // Wait so thread does not start right away
   delay(THREAD_DELAY_MS);
 
-  unsigned long prev = 0, curr = 0;
-
-  int left_angle = 90;
-  int right_angle  = 90;
+  int left_angle = DEFAULT_LEFT_ELEVON_ANGLE;
+  int right_angle  = DEFAULT_RIGHT_ELEVON_ANGLE;
 
   // Thread loop; update rate dependent on the update rate of I2C sensors
   while(true) {
@@ -269,8 +269,12 @@ void thread_auto() {
   }
 }
 
+/*************************************/
+/* Thread for calculating setpoints */ 
+/************************************/
+
 void thread_setpoint() {
-   // Wait so thread does not start right away
+  // Wait so thread does not start right away
   delay(THREAD_DELAY_MS);
 
   // Thread loop
@@ -284,12 +288,27 @@ void thread_setpoint() {
   }
 }
 
+/**************************************/
+/* Thread for reporting CPU activity */ 
+/*************************************/
+void thread_activity() {
+  // Wait so thread does not start right away
+  delay(THREAD_DELAY_MS);
+
+  while(true) {
+    LEDS::on(ACTIVITY_LED);
+    delay(500);
+    LEDS::off(ACTIVITY_LED);
+    delay(500);
+  }
+}
+
 /**
  * @brief Parse a message for commands and take the appropriate action
  */
 void parse_cmds(void) {
-  int id = static_cast<int>(msg->m_from);
-  DEBUG_PRINT("Received radio message from: "); DEBUG_PRINTLN(NAMES[id]);
+  int msg_id = static_cast<int>(msg->m_from);
+  DEBUG_PRINT("Received radio message from: "); DEBUG_PRINTLN(NAMES[msg_id]);
 
   // If we received command information
   if(msg->cmds() != NULL) {
@@ -343,9 +362,9 @@ void update_ypr(void) {
                   imu_data.ax, imu_data.ay, imu_data.az,
                   imu_data.mx, imu_data.my, imu_data.mz);
 
-    new_pitch = filter.getPitch_rad()*180.0f/PI;
-    new_roll = filter.getRoll_rad()*180.0f/PI;
-    new_yaw = filter.getYaw_rad()*180.0f/PI;
+    new_pitch = filter.getPitch_rad()*RAD_TO_DEG;
+    new_roll =  filter.getRoll_rad()*RAD_TO_DEG;
+    new_yaw =   filter.getYaw_rad()*RAD_TO_DEG;
     
     // Alert thread_auto that YPR has been updated
     new_ypr = true;
@@ -378,7 +397,7 @@ void setup() {
   if(CALIBRATE_ACCEL) IMU::calibrate(mpu9250, IMU::ACCEL);
   if(CALIBRATE_GYRO)  IMU::calibrate(mpu9250, IMU::GYRO);
   if(CALIBRATE_MAG)   IMU::calibrate(mpu9250, IMU::MAG);
-  if(CALIBRATE_BARO)  BARO::calibrate();
+  if(CALIBRATE_BARO)  BARO::calibrate(mpl3115);
 
   // Initialize PID
   rollSetpoint = DEFAULT_ROLL_SETPOINT;
@@ -396,8 +415,11 @@ void setup() {
   headingPID.SetMode(AUTOMATIC);
   headingPID.SetSampleTime(SAMPLE_TIME_MS);
   
-  // Initialize threads
+  // Initialize threads; thread time slice at 1 ms
   threads.setMicroTimer(1);
+
+  // Thread to monitor CPU activity
+  THREADS::ids[ACTIVITY_ID] = threads.addThread(thread_activity);
 
   // Always keep radio, gps, and i2c thread alive
   THREADS::ids[RADIO_ID]  = threads.addThread(thread_radio);
@@ -411,17 +433,22 @@ void setup() {
   // Manual mode; turn on manual thread
   THREADS::ids[MANUAL_ID] = threads.addThread(thread_manual);
 
-  // If we boot in manual mode; immediately suspend the automatic and setpoint threads
+  // Handle boot mode
   if(mode == MODE_MANUAL) {
+    // If we boot in manual mode, immediately suspend the automatic and setpoint threads
     THREADS::suspend(AUTO_ID);
     THREADS::suspend(SETPOINT_ID);
-    
+
+    LEDS::off(MODE_LED);
   } else {
+    // If we boot in auto mode, immediately suspend the manual thread and terminate interrupts
     THREADS::suspend(MANUAL_ID);
     RECEIVER::terminate_interrupts();
+
+    LEDS::on(MODE_LED);
   }
   
-  Serial.println("Setup complete");
+  DEBUG_PRINTLN("Setup Complete");
 }
 
 void loop() {

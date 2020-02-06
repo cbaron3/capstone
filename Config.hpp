@@ -23,7 +23,7 @@ using Pin = unsigned int;
 static constexpr unsigned long SAMPLE_TIME_MS = 20;
 
 /* DEVICE NAMES */
-static constexpr String NAMES[] = {"GND", "PLANE", "G1", "G2"};
+const String NAMES[] = {"GND", "PLANE", "G1", "G2"};
 
 /* CALIBRATION FLAGS */
 static constexpr bool CALIBRATE_ACCEL = false;
@@ -66,11 +66,13 @@ static constexpr Pin ACTIVITY_LED = LED2;
 static constexpr Pin RADIO_LED = LED3;
 static constexpr Pin MODE_LED = LED4;
 
-
 /* SERVOS */
 static constexpr Pin SERVO1 = 20;
 static constexpr Pin SERVO2 = 21;
 static constexpr Pin SERVOS[] = {SERVO1, SERVO2};
+
+static constexpr int DEFAULT_LEFT_ELEVON_ANGLE = 90;
+static constexpr int DEFAULT_RIGHT_ELEVON_ANGLE = 90;
 
 /* RECEIVER INPUTS */
 static constexpr Pin RECEIVER1 = 22;  // Left elevon
@@ -83,9 +85,8 @@ static constexpr Pin RADIO_RESET = 15;
 static constexpr Pin RADIO_INT = 16;
 static constexpr float RADIO_FREQ = 915.0f;
 static constexpr int RADIO_POWER = 23;
-    
+static constexpr aero::def::ID THIS_DEVICE = aero::def::ID::G1;
+
 /* GPS */
 static constexpr HardwareSerial *GPS_PORT = &Serial2;
 static constexpr Pin GPS_FIX =  4;
-
-const aero::def::ID THIS_DEVICE = aero::def::ID::G1;

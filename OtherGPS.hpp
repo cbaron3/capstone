@@ -77,30 +77,30 @@ namespace OtherGPS {
   }
 
   inline void print_data(const GPSData& data) {
-    Serial.print(" Satellites: "); Serial.print(data.satellites);
+    DEBUG_PRINT(" Satellites: "); DEBUG_PRINT(data.satellites);
 
     // Print time stamp
-    Serial.print("\t Date (MM/DD/YY): "); 
-    Serial.print(data.timestamp.month);
-    Serial.print("/"); Serial.print(data.timestamp.day);
-    Serial.print("/"); Serial.print(data.timestamp.year);
+    DEBUG_PRINT("\t Date (MM/DD/YY): "); 
+    DEBUG_PRINT(data.timestamp.month);
+    DEBUG_PRINT("/"); DEBUG_PRINT(data.timestamp.day);
+    DEBUG_PRINT("/"); DEBUG_PRINT(data.timestamp.year);
 
-    Serial.print("/t Time: (HR:MIN:SEC): ");
-    Serial.print(data.timestamp.hr);
-    Serial.print(":"); Serial.print(data.timestamp.min);
-    Serial.print(":"); Serial.print(data.timestamp.sec);
+    DEBUG_PRINT("/t Time: (HR:MIN:SEC): ");
+    DEBUG_PRINT(data.timestamp.hr);
+    DEBUG_PRINT(":"); DEBUG_PRINT(data.timestamp.min);
+    DEBUG_PRINT(":"); DEBUG_PRINT(data.timestamp.sec);
 
     // Print coordinate
-    Serial.println("\t Lat, Lon :"); 
-    Serial.print(data.coord.lat, 7);
-    Serial.print(", "); 
-    Serial.print(data.coord.lon, 7);
+    DEBUG_PRINTLN("\t Lat, Lon :"); 
+    DEBUG_PRINT(data.coord.lat);
+    DEBUG_PRINT(", "); 
+    DEBUG_PRINT(data.coord.lon);
 
     // Print other data
-    Serial.print("\t Speed (m/s): "); Serial.print(data.speed);
-    Serial.print("\t Altitude (m): "); Serial.print(data.altitude);
-    Serial.print("\t Course (deg): "); Serial.print(data.angle);
-    Serial.println("");
+    DEBUG_PRINT("\t Speed (m/s): "); DEBUG_PRINT(data.speed);
+    DEBUG_PRINT("\t Altitude (m): "); DEBUG_PRINT(data.altitude);
+    DEBUG_PRINT("\t Course (deg): "); DEBUG_PRINT(data.angle);
+    DEBUG_PRINTLN("");
   }
   
   inline void fill_buffer(TinyGPS& gps, HardwareSerial& port, unsigned long ms) {

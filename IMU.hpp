@@ -14,16 +14,16 @@
 namespace IMU {
   namespace {
     uint8_t EepromBuffer[48];
-    int MAG_OFFSET = 24;
+    unsigned int MAG_OFFSET = 24;
 
     inline void calibrate_accel(MPU9250& imu) {
-      Serial.println("Starting Accelerometer Calibration");
+      DEBUG_PRINTLN("Starting Accelerometer Calibration");
       for(int j = 0; j < 5; j++) { LEDS::flash(500); }
       delay(2500);
       
       for(int i = 0; i < 6; i++) {
         imu.calibrateAccel();
-        Serial.println("Switch");
+        DEBUG_PRINTLN("Switch");
         for(int j = 0; j < 5; j++) { LEDS::flash(500); }
         delay(2500);
       }
@@ -46,11 +46,11 @@ namespace IMU {
         EEPROM.write(i,EepromBuffer[i]);
       }
       
-      Serial.println("Accelerometer Calibration Done");
+      DEBUG_PRINTLN("Accelerometer Calibration Done");
     }
     
     inline void calibrate_gyro(MPU9250& imu) {
-      Serial.println("Starting Gyroscope Calibration");
+      DEBUG_PRINTLN("Starting Gyroscope Calibration");
       
       // Do nothing, dont need to pass anything in
       for(int j = 0; j < 5; j++) { LEDS::inout(250); }
@@ -60,13 +60,13 @@ namespace IMU {
       
       for(int j = 0; j < 5; j++) { LEDS::inout(250); }
 
-      Serial.println("Gyro Calibration Done");
+      DEBUG_PRINTLN("Gyro Calibration Done");
       
     }
     
     inline void calibrate_mag(MPU9250& imu) {
       // Do nothing, need to pass in EEPROM. Figure 8 motion.
-      Serial.println("Starting Magnometer Calibration");
+      DEBUG_PRINTLN("Starting Magnometer Calibration");
       for(int j = 0; j < 6; j++) { LEDS::sweep(100); }
 
       imu.calibrateMag();
@@ -91,7 +91,7 @@ namespace IMU {
         EEPROM.write(i,EepromBuffer[i]);
       }
 
-      Serial.println("Magnometer Calibration Done");
+      DEBUG_PRINTLN("Magnometer Calibration Done");
     }
   
   }
@@ -108,10 +108,10 @@ namespace IMU {
     // start communication with IMU 
     int status = imu.begin();
     if (status < 0) {
-      Serial.println("IMU initialization unsuccessful");
-      Serial.println("Check IMU wiring or try cycling power");
-      Serial.print("Status: ");
-      Serial.println(status);
+      DEBUG_PRINTLN("IMU initialization unsuccessful");
+      DEBUG_PRINTLN("Check IMU wiring or try cycling power");
+      DEBUG_PRINT("Status: ");
+      DEBUG_PRINTLN(status);
       while(1) {}
     }
 
@@ -177,18 +177,18 @@ namespace IMU {
 
   inline void print_data(const MPU9250Data& data) {
     // display the data
-    Serial.print(" AX (m/s^s): "); Serial.print(data.ax,4);
-    Serial.print("\t AY (m/s^s): "); Serial.print(data.ay,4);
-    Serial.print("\t AZ (m/s^s): "); Serial.print(data.az,4);
+    DEBUG_PRINT(" AX (m/s^s): "); DEBUG_PRINT(data.ax);
+    DEBUG_PRINT("\t AY (m/s^s): "); DEBUG_PRINT(data.ay);
+    DEBUG_PRINT("\t AZ (m/s^s): "); DEBUG_PRINT(data.az);
     
-    Serial.print("\t GX (rad/s): "); Serial.print(data.gx,4);
-    Serial.print("\t GY (rad/s): "); Serial.print(data.gy,4);
-    Serial.print("\t GZ (rad/s): "); Serial.print(data.gz,4);
+    DEBUG_PRINT("\t GX (rad/s): "); DEBUG_PRINT(data.gx);
+    DEBUG_PRINT("\t GY (rad/s): "); DEBUG_PRINT(data.gy);
+    DEBUG_PRINT("\t GZ (rad/s): "); DEBUG_PRINT(data.gz);
 
-    Serial.print("\t MX (uT): "); Serial.print(data.mx,4);
-    Serial.print("\t MY (uT): "); Serial.print(data.my,4);
-    Serial.print("\t MZ (uT): "); Serial.print(data.mz,4);
-    Serial.println("");
+    DEBUG_PRINT("\t MX (uT): "); DEBUG_PRINT(data.mx);
+    DEBUG_PRINT("\t MY (uT): "); DEBUG_PRINT(data.my);
+    DEBUG_PRINT("\t MZ (uT): "); DEBUG_PRINT(data.mz);
+    DEBUG_PRINTLN("");
   }
 
   inline void calibrate(MPU9250& imu, SENSOR sensor) {

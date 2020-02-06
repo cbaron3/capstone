@@ -39,12 +39,6 @@ namespace LEDS {
         digitalWrite(LED_PINS[i], LOW);
         digitalWrite(LED_PINS[LED_COUNT-i], LOW);
     }
-
-//    digitalWrite(LED_PINS[1], HIGH);
-//    digitalWrite(LED_PINS[LED_COUNT-1], HIGH);
-//    delay(delay_time);
-//    digitalWrite(LED_PINS[1], LOW);
-//    digitalWrite(LED_PINS[LED_COUNT-1], LOW);
   }
 
   inline void flash(int delay_time) {

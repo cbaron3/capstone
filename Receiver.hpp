@@ -61,8 +61,8 @@ namespace RECEIVER {
   }
 
   inline void print_data(const ReceiverData& data) {
-    Serial.print(" Channel 1: "); Serial.print(data.recv1);
-    Serial.print("\t Channel 2: "); Serial.print(data.recv2);
-    Serial.println("");
+    DEBUG_PRINT(" Channel 1: "); DEBUG_PRINT(data.recv1);
+    DEBUG_PRINT("\t Channel 2: "); DEBUG_PRINT(data.recv2);
+    DEBUG_PRINTLN("");
   }
 }

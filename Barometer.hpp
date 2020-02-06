@@ -4,7 +4,8 @@
  * File for functions that interface with the barometer; MPL3115A2.
  * Makes use of the SparkfunMPL3115A2 library 
  */
- 
+
+#include "Config.hpp"
 #include <SparkFunMPL3115A2.h>
 
 /**
@@ -47,13 +48,13 @@ namespace BARO {
 
   // Print the data in a formatted method
   inline void print_data(const BaroData& data) {
-    Serial.print(" Altitude (m): "); Serial.print(data.altitude);
+    DEBUG_PRINT(" Altitude (m): "); DEBUG_PRINT(data.altitude);
     
     if(calibrated) {
-      Serial.print("\t Altitude Change (m): "); Serial.print(data.delta_altitude);
+      DEBUG_PRINT("\t Altitude Change (m): "); DEBUG_PRINT(data.delta_altitude);
     }
     
-    Serial.println("");
+    DEBUG_PRINTLN("");
   }
 
   inline void calibrate(MPL3115A2& baro) {
