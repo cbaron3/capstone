@@ -9,6 +9,8 @@
 
 using Pin = unsigned int;
 
+#define DEBUG
+
 #ifdef DEBUG
     #define DEBUG_PRINT(x) Serial.print(x)
     #define DEBUG_PRINTLN(x) Serial.println(x)
@@ -61,10 +63,11 @@ static constexpr Pin LED4 = 5;
 static constexpr unsigned int LED_COUNT = 4;
 static constexpr Pin LED_PINS[LED_COUNT] = {LED1, LED2, LED3, LED4};
 
-static constexpr Pin POWER_LED = LED1;
-static constexpr Pin ACTIVITY_LED = LED2;
-static constexpr Pin RADIO_LED = LED3;
-static constexpr Pin MODE_LED = LED4;
+/* FROM LEFT TO RIGHT */
+static constexpr Pin POWER_LED = LED1;    // On when board is powered
+static constexpr Pin ACTIVITY_LED = LED2; // Toggles on and off to signal that the CPU is running
+static constexpr Pin RADIO_LED = LED3;    // Turns on when new message is received
+static constexpr Pin MODE_LED = LED4;     // On when in manual mode, else off
 
 /* SERVOS */
 static constexpr Pin SERVO1 = 20;

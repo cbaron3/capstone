@@ -292,9 +292,6 @@ void thread_setpoint() {
 /* Thread for reporting CPU activity */ 
 /*************************************/
 void thread_activity() {
-  // Wait so thread does not start right away
-  delay(THREAD_DELAY_MS);
-
   while(true) {
     LEDS::on(ACTIVITY_LED);
     delay(500);
@@ -334,6 +331,7 @@ void parse_cmds(void) {
         
         // Assign mode
         mode = MODE_AUTO;
+        LEDS::off(MODE_LED);
       } else {
         // Device is currently in auto mode therefore we will swap to manual
         DEBUG_PRINTLN("Changing from auto to manual");
@@ -347,6 +345,7 @@ void parse_cmds(void) {
 
         // Assign mode
         mode = MODE_MANUAL;
+        LEDS::on(MODE_LED);
       }
     }
   }
@@ -418,9 +417,6 @@ void setup() {
   // Initialize threads; thread time slice at 1 ms
   threads.setMicroTimer(1);
 
-  // Thread to monitor CPU activity
-  THREADS::ids[ACTIVITY_ID] = threads.addThread(thread_activity);
-
   // Always keep radio, gps, and i2c thread alive
   THREADS::ids[RADIO_ID]  = threads.addThread(thread_radio);
   THREADS::ids[GPS_ID]    = threads.addThread(thread_gps);
@@ -439,14 +435,17 @@ void setup() {
     THREADS::suspend(AUTO_ID);
     THREADS::suspend(SETPOINT_ID);
 
-    LEDS::off(MODE_LED);
+    LEDS::on(MODE_LED);
   } else {
     // If we boot in auto mode, immediately suspend the manual thread and terminate interrupts
     THREADS::suspend(MANUAL_ID);
     RECEIVER::terminate_interrupts();
 
-    LEDS::on(MODE_LED);
+    LEDS::off(MODE_LED);
   }
+  
+  // Thread to monitor CPU activity
+  THREADS::ids[ACTIVITY_ID] = threads.addThread(thread_activity);
   
   DEBUG_PRINTLN("Setup Complete");
 }
