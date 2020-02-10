@@ -53,3 +53,7 @@ dkms.conf
 
 hardware/capstone.b#*
 hardware/capstone.s#*
+
+.vscode
+.vscode/
+.vscode/settings.json

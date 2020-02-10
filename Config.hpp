@@ -53,6 +53,9 @@ static constexpr double DEFAULT_YAW_SETPOINT = 0;
 static constexpr double YAW_MIN_LIMIT = -90;
 static constexpr double YAW_MAX_LIMIT = 90;
 
+/* BAROMETER */
+static constexpr double ALTITUDE_BIAS = 250.0f; // In metres
+
 /* SYSTEM FLAGS */
 static constexpr bool DEBUG_MODE = true;  // Block usage of Serial printing if not debugging to speed up system
 
@@ -96,11 +99,11 @@ static constexpr float RADIO_FREQ = 915.0f;
 static constexpr int RADIO_POWER = 23;
 static constexpr aero::def::ID THIS_DEVICE = aero::def::ID::G1;
 
-/* GPS */
-static constexpr HardwareSerial *GPS_PORT = &Serial2;
-static constexpr Pin GPS_FIX =  4;
-
 template <class X, class M, class N, class O, class Q>
 inline X map_generic(X x, M in_min, N in_max, O out_min, Q out_max){
   return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
+
+/* GPS */
+static constexpr HardwareSerial *GPS_PORT = &Serial2;
+static constexpr Pin GPS_FIX =  4;

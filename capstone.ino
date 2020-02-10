@@ -455,7 +455,7 @@ void setup() {
   if(CALIBRATE_ACCEL) IMU::calibrate(mpu9250, IMU::ACCEL);
   if(CALIBRATE_GYRO)  IMU::calibrate(mpu9250, IMU::GYRO);
   if(CALIBRATE_MAG)   IMU::calibrate(mpu9250, IMU::MAG);
-  if(CALIBRATE_BARO)  BARO::calibrate(mpl3115);
+  if(CALIBRATE_BARO)  BARO::calibrate(mpl3115, ALTITUDE_BIAS);
 
   // Initialize PID
   rollSetpoint = DEFAULT_ROLL_SETPOINT;
