@@ -41,16 +41,16 @@ uNavAHRS filter;
 int leftOutput, rightOutput; //Output for flaps
 
 double rollSetpoint, rollInput, rollOutput;
-
-PID rollPID(&rollInput, &rollOutput, &rollSetpoint, KP, KI, KD, DIRECT);
+PID rollPID(&rollInput, &rollOutput, &rollSetpoint, ROLL_KP, ROLL_KI, ROLL_KD, DIRECT);
 
 //   PitchPID Stuff
 double pitchSetpoint, pitchInput, pitchOutput;
-PID pitchPID(&pitchInput, &pitchOutput, &pitchSetpoint, KP, KI, KD, DIRECT);
+PID pitchPID(&pitchInput, &pitchOutput, &pitchSetpoint, PITCH_KP, PITCH_KI, PITCH_KD, DIRECT);
+
 
 //   PitchPID Stuff
 double headingSetpoint, headingInput, headingOutput;
-PID headingPID(&headingInput, &headingOutput, &headingSetpoint, KP, KI, KD, DIRECT);
+PID headingPID(&headingInput, &headingOutput, &headingSetpoint, ROLL_KP, ROLL_KI, ROLL_KD, DIRECT);
 
 // Threads
 #include "Threads.hpp"
@@ -198,7 +198,7 @@ void thread_manual() {
     curr = millis();
     if(curr - prev >= MANUAL_INTERVAL_MS) {
       prev = curr;
-
+      recv_data = RECEIVER::read_data();
       left_elevon.writeMicroseconds(recv_data.recv1);
       right_elevon.writeMicroseconds(recv_data.recv2);
 
@@ -216,7 +216,10 @@ void thread_manual() {
 /***********************************************/
 
 volatile bool new_ypr = false;
-const unsigned long AUTO_INTERVAL_MS = 5;
+const unsigned long AUTO_INTERVAL_MS = 10;
+
+static constexpr float SERVO_INC = 2.0f;
+float SERVO_INC_MS = 10.0f;
 
 void thread_auto() {
   // Wait so thread does not start right away
@@ -224,7 +227,11 @@ void thread_auto() {
 
   int left_angle = DEFAULT_LEFT_ELEVON_ANGLE;
   int right_angle  = DEFAULT_RIGHT_ELEVON_ANGLE;
+  bool computed = false;
 
+  unsigned long curr = 0, prev = 0;
+
+  
   // Thread loop; update rate dependent on the update rate of I2C sensors
   while(true) {
     if(new_ypr == true) {
@@ -243,31 +250,83 @@ void thread_auto() {
       headingOutput = -1 * headingOutput;
 
       // Basic elevon mixing; needs to be improveed
-      leftOutput = ((rollOutput + pitchOutput) / 2) + 90;
-      rightOutput = ((rollOutput - pitchOutput) / 2) + 90;
+      leftOutput = ((rollOutput + pitchOutput) / 2.0f) + 90.0f;
+      rightOutput = ((rollOutput - pitchOutput) / 2.0f) + 90.0f;
 
-      if(left_angle > leftOutput) {
-        left_angle -= 1;
-      } else if(left_angle < leftOutput) {
-        left_angle += 1;
-      }
-
-      if(right_angle > rightOutput) {
-        right_angle -= 1;
-      } else if(right_angle < rightOutput) {
-        right_angle += 1;
-      }
-      
-      left_elevon.write(left_angle);
-      right_elevon.write(right_angle);
-      
+      computed = true;
       new_ypr = false;
+    }
+
+    if(computed) {
+        curr = millis();
+        if(curr - prev >= SERVO_INC_MS) {
+          //SERVO_INC_MS = 0.0f;
+          
+          prev = curr;
+
+          //float left_diff = leftOutput - left_angle;
+          //float right_diff = rightOutput - right_angle;
+
+          bool b = false;
+          
+//          if( fabs(left_diff) < 1.0f &&  fabs(right_diff) < 1.0f ) {
+//            SERVO_INC_MS = 5.0f;
+//          } else {
+//            
+//            if(left_diff < 0) {
+//              left_angle += ((unsigned long)(left_diff / 10.0f)) - SERVO_INC;  
+//            } else {
+//              left_angle += ((unsigned long)(left_diff / 10.0f)) + SERVO_INC;
+//            }
+//
+//            if(right_diff < 0) {
+//              right_angle += ((unsigned long)(right_diff / 10.0f)) - SERVO_INC;
+//            } else {
+//              right_angle += ((unsigned long)(right_diff / 10.0f)) + SERVO_INC;
+//            }
+//  
+//          }
+          
+          //left_angle += ((unsigned long)(left_diff / 10.0f)) + 1.0f
+         // right_angle += ((unsigned long)(left_diff / 10.0f)) + 1.0f
+          
+          if(left_angle - leftOutput > 5.0f) {
+            left_angle -= SERVO_INC;
+          } else if(left_angle - leftOutput < 5.0f) {
+            left_angle += SERVO_INC;
+          } else {
+            b = true;
+          }
+    
+          if(right_angle - rightOutput > 5.0f) {
+            right_angle -= SERVO_INC;
+          } else if(right_angle - rightOutput < 5.0f) {
+            right_angle += SERVO_INC;
+          } else {
+            if(b == true) {
+              //SERVO_INC_MS = 5.0f;
+            }
+          }
+
+          //eft_elevon.write(left_angle);
+          //right_elevon.write(right_angle);
+
+          // Ramp up to target angle by adding or subtracting until target is reached. then increase delay. 
+          // left_elevon.writeMicroseconds(map_generic(left_angle, SERVO_MIN_ANGLE, SERVO_MAX_ANGLE, SERVO_MIN_MS, SERVO_MAX_MS));
+          left_elevon.writeMicroseconds(map_generic(left_angle, SERVO_MIN_ANGLE, SERVO_MAX_ANGLE, SERVO_MIN_MS, SERVO_MAX_MS));
+          
+          // right_elevon.writeMicroseconds(map_generic(right_angle, SERVO_MIN_ANGLE, SERVO_MAX_ANGLE, SERVO_MIN_MS, SERVO_MAX_MS));
+          right_elevon.writeMicroseconds(map_generic(right_angle, SERVO_MIN_ANGLE, SERVO_MAX_ANGLE, 1100, 2000));
+      } else {
+        //threads.yield();
+      }
+    }
+      
     }
 
     // Don't think I should yield this THREADS, it is important
     // threads.yield();
   }
-}
 
 /*************************************/
 /* Thread for calculating setpoints */ 

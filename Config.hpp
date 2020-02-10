@@ -9,7 +9,7 @@
 
 using Pin = unsigned int;
 
-#define DEBUG
+// #define DEBUG
 
 #ifdef DEBUG
     #define DEBUG_PRINT(x) Serial.print(x)
@@ -29,7 +29,7 @@ const String NAMES[] = {"GND", "PLANE", "G1", "G2"};
 
 /* CALIBRATION FLAGS */
 static constexpr bool CALIBRATE_ACCEL = false;
-static constexpr bool CALIBRATE_GYRO = false;
+static constexpr bool CALIBRATE_GYRO = true;
 static constexpr bool CALIBRATE_MAG = false;
 static constexpr bool CALIBRATE_BARO = false;
 
@@ -38,7 +38,8 @@ enum class BOOT_MODE {LED_TEST, LED_TEST_RANDOM};
 static constexpr BOOT_MODE MODE = BOOT_MODE::LED_TEST_RANDOM;
 
 /* PID */
-static constexpr double KP = 1, KI = 0, KD = 0;
+static constexpr double ROLL_KP = 3.0f, ROLL_KI = 0.10f, ROLL_KD = 0.0f;
+static constexpr double PITCH_KP = 2.0f, PITCH_KI = 0.10f, PITCH_KD = 0.1f;
 
 static constexpr double DEFAULT_ROLL_SETPOINT = 0;
 static constexpr double ROLL_MIN_LIMIT = -90;
@@ -74,6 +75,11 @@ static constexpr Pin SERVO1 = 20;
 static constexpr Pin SERVO2 = 21;
 static constexpr Pin SERVOS[] = {SERVO1, SERVO2};
 
+static constexpr float SERVO_MIN_ANGLE = 0.0f;
+static constexpr float SERVO_MAX_ANGLE = 179.0f;
+static constexpr float SERVO_MIN_MS = 800.0f;
+static constexpr float SERVO_MAX_MS = 2000.0f;
+
 static constexpr int DEFAULT_LEFT_ELEVON_ANGLE = 90;
 static constexpr int DEFAULT_RIGHT_ELEVON_ANGLE = 90;
 
@@ -93,3 +99,8 @@ static constexpr aero::def::ID THIS_DEVICE = aero::def::ID::G1;
 /* GPS */
 static constexpr HardwareSerial *GPS_PORT = &Serial2;
 static constexpr Pin GPS_FIX =  4;
+
+template <class X, class M, class N, class O, class Q>
+inline X map_generic(X x, M in_min, N in_max, O out_min, Q out_max){
+  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
