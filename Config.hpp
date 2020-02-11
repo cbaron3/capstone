@@ -7,9 +7,20 @@
 #include "Arduino.h"
 #include "src/aero-cpp-lib/include/Data.hpp"
 
+
 using Pin = unsigned int;
 
+enum mode_type {MODE_MANUAL = 0, MODE_AUTO = 1};
+static constexpr mode_type DEFAULT_MODE = MODE_MANUAL;
+
+/* DELAYS */
+const unsigned long THREAD_DELAY_MS = 1000;
+const unsigned long SAMPLE_TIME_MS = 20;
+const unsigned long MANUAL_INTERVAL_MS = 20;    // 50 HZ Servos
+const unsigned long AUTO_INTERVAL_MS = 20;      // 50 HZ Servos
+
 #define  DEBUG
+#define  TEST_TRAINER
 
 #ifdef DEBUG
     #define DEBUG_PRINT(x) Serial.print(x)
@@ -21,8 +32,19 @@ using Pin = unsigned int;
     #define DEBUG_START(x)
 #endif
 
-/* SAMPLE TIME */
-static constexpr unsigned long SAMPLE_TIME_MS = 20;
+#if defined(FINAL_GLIDER)
+    static constexpr unsigned long LEFT_ELEVON_MS_OFFSET = 0;
+    static constexpr unsigned long RIGHT_ELEVON_MS_OFFSET = 0;
+#elif defined(TEST_GLIDER)
+    static constexpr unsigned long LEFT_ELEVON_MS_OFFSET = 0;
+    static constexpr unsigned long RIGHT_ELEVON_MS_OFFSET = 0;
+#elif defined(TEST_TRAINER)
+    static constexpr unsigned long LEFT_ELEVON_MS_OFFSET = -35;
+    static constexpr unsigned long RIGHT_ELEVON_MS_OFFSET = -35;
+#else 
+    static constexpr unsigned long LEFT_ELEVON_MS_OFFSET = 0;
+    static constexpr unsigned long RIGHT_ELEVON_MS_OFFSET = 0;
+#endif
 
 /* DEVICE NAMES */
 const String NAMES[] = {"GND", "PLANE", "G1", "G2"};
@@ -40,6 +62,7 @@ static constexpr BOOT_MODE MODE = BOOT_MODE::LED_TEST_RANDOM;
 /* PID */
 static constexpr double ROLL_KP = 1.0f, ROLL_KI = 0.00f, ROLL_KD = 0.0f;
 static constexpr double PITCH_KP = 10.0f, PITCH_KI = 1.00f, PITCH_KD = 1.0f;
+static constexpr double YAW_KP = 10.0f, YAW_KI = 1.00f, YAW_KD = 1.0f;
 
 static constexpr double DEFAULT_ROLL_SETPOINT = 0;
 static constexpr double ROLL_MIN_LIMIT = -90;
@@ -52,6 +75,8 @@ static constexpr double PITCH_MAX_LIMIT = 90;
 static constexpr double DEFAULT_YAW_SETPOINT = 0;
 static constexpr double YAW_MIN_LIMIT = -90;
 static constexpr double YAW_MAX_LIMIT = 90;
+
+static constexpr bool INVERT_PID = true;
 
 /* BAROMETER */
 static constexpr double ALTITUDE_BIAS = 250.0f; // In metres

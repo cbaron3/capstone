@@ -35,32 +35,32 @@ RH_RF95 radio {RADIO_CS, RADIO_INT};
 #include "src/uNavAHRS/uNavAHRS.h"
 uNavAHRS filter;
 
-#include "src/Arduino-PID-Library/PID_v1.h"
+#include "Controller.hpp"
 
-//     Roll PID stuff
-int leftOutput, rightOutput; //Output for flaps
+// Controller for pitch
+PID roll_control(&CONTROLLER::roll_input, 
+                 &CONTROLLER::roll_output, 
+                 &CONTROLLER::roll_setpoint, 
+                 ROLL_KP, ROLL_KI, ROLL_KD, DIRECT);
 
-double rollSetpoint, rollInput, rollOutput;
-PID rollPID(&rollInput, &rollOutput, &rollSetpoint, ROLL_KP, ROLL_KI, ROLL_KD, DIRECT);
+// Controller for roll
+PID pitch_control(&CONTROLLER::pitch_input, 
+                 &CONTROLLER::pitch_output, 
+                 &CONTROLLER::pitch_setpoint, 
+                 PITCH_KP, PITCH_KI, PITCH_KD, DIRECT);
 
-//   PitchPID Stuff
-double pitchSetpoint, pitchInput, pitchOutput;
-PID pitchPID(&pitchInput, &pitchOutput, &pitchSetpoint, PITCH_KP, PITCH_KI, PITCH_KD, DIRECT);
-
-
-//   PitchPID Stuff
-double headingSetpoint, headingInput, headingOutput;
-PID headingPID(&headingInput, &headingOutput, &headingSetpoint, ROLL_KP, ROLL_KI, ROLL_KD, DIRECT);
+// Controller for yaw
+PID yaw_control(&CONTROLLER::yaw_input, 
+                 &CONTROLLER::yaw_output, 
+                 &CONTROLLER::yaw_setpoint, 
+                 YAW_KP, YAW_KI, YAW_KD, DIRECT);
 
 // Threads
 #include "Threads.hpp"
 
 volatile float new_yaw = 0.0f, new_pitch = 0.0f, new_roll = 0.0f;
 
-enum mode_type {MODE_MANUAL = 0, MODE_AUTO = 1};
-mode_type mode = MODE_AUTO;
-
-const unsigned long THREAD_DELAY_MS = 1000;
+mode_type mode = DEFAULT_MODE;
 
 /********************************************/
 /* Thread for handling radio communications */ 
@@ -92,7 +92,7 @@ void thread_radio() {
         LEDS::off(RADIO_LED);
         new_msg = sent;
       } 
-    } 
+    }
     
     threads.yield();
   }
@@ -131,8 +131,9 @@ void thread_gps() {
 
       } 
     }
-    
+
     threads.yield(); 
+    
   }
 }
 
@@ -144,8 +145,6 @@ IMU::MPU9250Data imu_data;
 BARO::BaroData baro_data;
 
 volatile bool new_i2c = false;
-// use 100
-const unsigned long I2C_INTERVAL_MS = SAMPLE_TIME_MS;
 
 void thread_i2c() {
   // Wait so thread does not start right away
@@ -160,28 +159,25 @@ void thread_i2c() {
 
       // Keep update rate for sensors at 20 Hz
       curr = millis();
-      if(curr - prev >= I2C_INTERVAL_MS) {
+      if(curr - prev >= SAMPLE_TIME_MS) {
         prev = curr;
 
         // Read data
         imu_data = IMU::read_data(mpu9250);
         baro_data = BARO::read_data(mpl3115);
-        
+      
         new_i2c = true;
       }
-    }
+    } 
 
-   threads.yield();
+    threads.yield();
+
   }
 }
 
 /********************************************/
 /* Thread for handling manual servo control */ 
 /********************************************/
-
-const unsigned long MANUAL_INTERVAL_MS = 10;
-
-
 
 void thread_manual() {
   // Wait so thread does not start right away
@@ -193,8 +189,6 @@ void thread_manual() {
   // Thread loop
   while(true) {
 
-    
-      
     curr = millis();
     if(curr - prev >= MANUAL_INTERVAL_MS) {
       prev = curr;
@@ -202,10 +196,7 @@ void thread_manual() {
       left_elevon.writeMicroseconds(recv_data.recv1);
       right_elevon.writeMicroseconds(recv_data.recv2);
 
-    } else {
-      //threads.yield();
-    }
-
+    } 
     // Don't think I should yield this THREADS, it is important
     threads.yield();
   }
@@ -216,137 +207,41 @@ void thread_manual() {
 /***********************************************/
 
 volatile bool new_ypr = false;
-const unsigned long AUTO_INTERVAL_MS = 10;
-
-static constexpr float SERVO_INC = 1.0f;
-float SERVO_INC_MS = 1.5f;
 
 void thread_auto() {
   // Wait so thread does not start right away
   delay(THREAD_DELAY_MS);
 
-  float left_angle = DEFAULT_LEFT_ELEVON_ANGLE;
-  float right_angle  = DEFAULT_RIGHT_ELEVON_ANGLE;
-  bool computed = false;
-
   unsigned long curr = 0, prev = 0;
 
+  float left_output = 0.0f, right_output = 0.0f;
   
-  // Thread loop; update rate dependent on the update rate of I2C sensors
   while(true) {
-    if(new_ypr == true) {
-      // Set PID inputs
-      pitchInput = new_pitch;
-      rollInput = new_roll;
-      headingInput = new_yaw;
+    curr = millis();
+    if(curr - prev >= AUTO_INTERVAL_MS) {
+      prev = curr;
 
-      // PID computations
-      pitchPID.Compute();
-      rollPID.Compute();
-      headingPID.Compute();
-
-      rollOutput = -1 * rollOutput;
-      pitchOutput = -1 * pitchOutput;
-      headingOutput = -1 * headingOutput;
-
-      DEBUG_PRINT("Roll: "); DEBUG_PRINT(rollOutput);
-      DEBUG_PRINT("\tPitch: "); DEBUG_PRINTLN(pitchOutput);
+      // Apply mixing if needed
+      #if defined(TEST_TRAINER)
+        left_output = (-1*CONTROLLER::pitch_output) + 90.0f;
+        right_output = (-1*CONTROLLER::roll_output) + 90.0f;
+      #else
+        leftOutput = ((CONTROLLER::roll_output + CONTROLLER::pitch_output) / 2.0f) + 90.0f;
+        rightOutput = ((CONTROLLER::roll_output - CONTROLLER::pitch_output) / 2.0f) + 90.0f;
+      #endif
       
-      // Basic elevon mixing; needs to be improveed
+      unsigned long left_signal = (unsigned long) map_generic(left_output, SERVO_MIN_ANGLE, SERVO_MAX_ANGLE, SERVO_MIN_MS, SERVO_MAX_MS) - LEFT_ELEVON_MS_OFFSET;
+      unsigned long right_signal = (unsigned long) map_generic(right_output, SERVO_MIN_ANGLE, SERVO_MAX_ANGLE, SERVO_MIN_MS, SERVO_MAX_MS) - RIGHT_ELEVON_MS_OFFSET;
 
-      // Use for glider
-      // leftOutput = ((rollOutput + pitchOutput) / 2.0f) + 90.0f;
-      // rightOutput = ((rollOutput - pitchOutput) / 2.0f) + 90.0f;
-      // Use for fixed wing
-      leftOutput = (-1*pitchOutput) + 90.0f;
-      rightOutput = (-1*rollOutput) + 90.0f;
+      left_elevon.writeMicroseconds(left_signal);
+      right_elevon.writeMicroseconds(right_signal);
 
-      computed = true;
-      new_ypr = false;
-    }
-
-    if(computed) {
-        curr = millis();
-        if(curr - prev >= SERVO_INC_MS) {
-          //SERVO_INC_MS = 0.0f;
-          
-          prev = curr;
-
-          //float left_diff = leftOutput - left_angle;
-          //float right_diff = rightOutput - right_angle;
-
-          bool b = false;
-          
-//          if( fabs(left_diff) < 1.0f &&  fabs(right_diff) < 1.0f ) {
-//            SERVO_INC_MS = 5.0f;
-//          } else {
-//            
-//            if(left_diff < 0) {
-//              left_angle += ((unsigned long)(left_diff / 10.0f)) - SERVO_INC;  
-//            } else {
-//              left_angle += ((unsigned long)(left_diff / 10.0f)) + SERVO_INC;
-//            }
-//
-//            if(right_diff < 0) {
-//              right_angle += ((unsigned long)(right_diff / 10.0f)) - SERVO_INC;
-//            } else {
-//              right_angle += ((unsigned long)(right_diff / 10.0f)) + SERVO_INC;
-//            }
-//  
-//          }
-          
-          //left_angle += ((unsigned long)(left_diff / 10.0f)) + 1.0f
-         // right_angle += ((unsigned long)(left_diff / 10.0f)) + 1.0f
-          
-//          if(left_angle - leftOutput > 1.0f) {
-//            left_angle -= SERVO_INC;
-//          } else if(left_angle - leftOutput < 1.0f) {
-//            left_angle += SERVO_INC;
-//          } else {
-//            b = true;
-//          }
-//    
-//          if(right_angle - rightOutput > 1.0f) {
-//            right_angle -= SERVO_INC;
-//          } else if(right_angle - rightOutput < 1.0f) {
-//            right_angle += SERVO_INC;
-//          } else {
-//            if(b == true) {
-//              //SERVO_INC_MS = 5.0f;
-//            }
-//          }
-
-          if(left_angle > leftOutput) {
-            left_angle -= SERVO_INC;
-          } else if(left_angle < leftOutput) {
-            left_angle += SERVO_INC;
-          }
+    } 
     
-          if(right_angle > rightOutput) {
-            right_angle -= SERVO_INC;
-          } else if(right_angle < rightOutput) {
-            right_angle += SERVO_INC;
-          }
+    threads.yield();
 
-          //eft_elevon.write(left_angle);
-          //right_elevon.write(right_angle);
-
-          // Ramp up to target angle by adding or subtracting until target is reached. then increase delay. 
-          // left_elevon.writeMicroseconds(map_generic(left_angle, SERVO_MIN_ANGLE, SERVO_MAX_ANGLE, SERVO_MIN_MS, SERVO_MAX_MS));
-          left_elevon.writeMicroseconds((map_generic(left_angle, SERVO_MIN_ANGLE, SERVO_MAX_ANGLE, SERVO_MIN_MS, SERVO_MAX_MS) - 35));
-          
-          // right_elevon.writeMicroseconds(map_generic(right_angle, SERVO_MIN_ANGLE, SERVO_MAX_ANGLE, SERVO_MIN_MS, SERVO_MAX_MS));
-          right_elevon.writeMicroseconds((map_generic(right_angle, SERVO_MIN_ANGLE, SERVO_MAX_ANGLE, SERVO_MIN_MS, SERVO_MAX_MS) - 35));
-      } else {
-        //threads.yield();
-      }
-    }
-      
-    }
-
-    // Don't think I should yield this THREADS, it is important
-    // threads.yield();
-  }
+  }  
+}
 
 /*************************************/
 /* Thread for calculating setpoints */ 
@@ -373,9 +268,9 @@ void thread_setpoint() {
 void thread_activity() {
   while(true) {
     LEDS::on(ACTIVITY_LED);
-    delay(500);
+    threads.delay(500);
     LEDS::off(ACTIVITY_LED);
-    delay(500);
+    threads.delay(500);
   }
 }
 
@@ -434,7 +329,7 @@ void parse_cmds(void) {
  * @brief Update the kalman filter values
  * @details Results in a flag being set that lets the auto thread know that new data has been received
  */
-void update_ypr(void) {
+void update_controller(void) {
     // NOTE: This will take two minute for good results!
     filter.update(imu_data.gx,imu_data.gy, imu_data.gz, 
                   imu_data.ax, imu_data.ay, imu_data.az,
@@ -444,15 +339,27 @@ void update_ypr(void) {
     new_roll =  filter.getRoll_rad()*RAD_TO_DEG;
     new_yaw =   filter.getYaw_rad()*RAD_TO_DEG;
     
-    // Alert thread_auto that YPR has been updated
-    new_ypr = true;
+    // TODO: Add moving average to the roll, pitch, and yaw values
+    DEBUG_PRINT("PID Input: ");
+    DEBUG_PRINT("\tRoll: "); DEBUG_PRINT(new_roll);
+    DEBUG_PRINT("\tPitch: "); DEBUG_PRINT(new_pitch);
+    DEBUG_PRINT("\tYaw: "); DEBUG_PRINT(new_yaw);
+
+    // Set PID inputs
+    CONTROLLER::pitch_input = new_pitch;
+    CONTROLLER::roll_input  = new_roll;
+    CONTROLLER::yaw_input   = new_yaw;
+
+    // Update controller values
+    CONTROLLER::update(roll_control, pitch_control, yaw_control);
+    
+    DEBUG_PRINT("PID Output: ");
+    DEBUG_PRINT("\tRoll: "); DEBUG_PRINT(CONTROLLER::roll_output);
+    DEBUG_PRINT("\tPitch: "); DEBUG_PRINT(CONTROLLER::pitch_output);
+    DEBUG_PRINT("\tYaw: "); DEBUG_PRINT(CONTROLLER::yaw_output);
 }
 
 void setup() {
-  // Initialization LEDs
-  LEDS::init();
-  LEDS::on(POWER_LED);
-
   // Initialize serial
   DEBUG_START(115200);
 
@@ -477,22 +384,12 @@ void setup() {
   if(CALIBRATE_MAG)   IMU::calibrate(mpu9250, IMU::MAG);
   if(CALIBRATE_BARO)  BARO::calibrate(mpl3115, ALTITUDE_BIAS);
 
-  // Initialize PID
-  rollSetpoint = DEFAULT_ROLL_SETPOINT;
-  pitchSetpoint = DEFAULT_PITCH_SETPOINT;
-  headingSetpoint = DEFAULT_YAW_SETPOINT;
+  CONTROLLER::init(roll_control, pitch_control, yaw_control);
 
-  rollPID.SetOutputLimits(ROLL_MIN_LIMIT, ROLL_MAX_LIMIT);
-  pitchPID.SetOutputLimits(PITCH_MIN_LIMIT, PITCH_MAX_LIMIT);
-  headingPID.SetOutputLimits(YAW_MIN_LIMIT, YAW_MAX_LIMIT);
+  // Initialization LEDs
+  LEDS::init();
+  LEDS::on(POWER_LED);
 
-  rollPID.SetMode(AUTOMATIC);
-  rollPID.SetSampleTime(SAMPLE_TIME_MS);
-  pitchPID.SetMode(AUTOMATIC);
-  pitchPID.SetSampleTime(SAMPLE_TIME_MS);
-  headingPID.SetMode(AUTOMATIC);
-  headingPID.SetSampleTime(SAMPLE_TIME_MS);
-  
   // Initialize threads; thread time slice at 1 ms
   threads.setMicroTimer(1);
 
@@ -538,7 +435,7 @@ void loop() {
 
   // For some reason, cannot put filter in thread
   if(new_i2c == true) {
-    update_ypr();
+    update_controller();
     new_i2c = false;
   }
 }
