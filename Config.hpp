@@ -9,7 +9,7 @@
 
 using Pin = unsigned int;
 
-// #define DEBUG
+#define  DEBUG
 
 #ifdef DEBUG
     #define DEBUG_PRINT(x) Serial.print(x)
@@ -29,7 +29,7 @@ const String NAMES[] = {"GND", "PLANE", "G1", "G2"};
 
 /* CALIBRATION FLAGS */
 static constexpr bool CALIBRATE_ACCEL = false;
-static constexpr bool CALIBRATE_GYRO = true;
+static constexpr bool CALIBRATE_GYRO = false;
 static constexpr bool CALIBRATE_MAG = false;
 static constexpr bool CALIBRATE_BARO = false;
 
@@ -38,8 +38,8 @@ enum class BOOT_MODE {LED_TEST, LED_TEST_RANDOM};
 static constexpr BOOT_MODE MODE = BOOT_MODE::LED_TEST_RANDOM;
 
 /* PID */
-static constexpr double ROLL_KP = 3.0f, ROLL_KI = 0.10f, ROLL_KD = 0.0f;
-static constexpr double PITCH_KP = 2.0f, PITCH_KI = 0.10f, PITCH_KD = 0.1f;
+static constexpr double ROLL_KP = 1.0f, ROLL_KI = 0.00f, ROLL_KD = 0.0f;
+static constexpr double PITCH_KP = 10.0f, PITCH_KI = 1.00f, PITCH_KD = 1.0f;
 
 static constexpr double DEFAULT_ROLL_SETPOINT = 0;
 static constexpr double ROLL_MIN_LIMIT = -90;
@@ -80,9 +80,18 @@ static constexpr Pin SERVOS[] = {SERVO1, SERVO2};
 
 static constexpr float SERVO_MIN_ANGLE = 0.0f;
 static constexpr float SERVO_MAX_ANGLE = 179.0f;
-static constexpr float SERVO_MIN_MS = 800.0f;
-static constexpr float SERVO_MAX_MS = 2000.0f;
+//static constexpr float SERVO_MIN_MS = 800.0f;
+//static constexpr float SERVO_MAX_MS = 2000.0f;
 
+static constexpr float SERVO_MIN_MS = 900.0f;
+static constexpr float SERVO_MAX_MS = 2100.0f;
+
+
+// For glider
+//static constexpr int DEFAULT_LEFT_ELEVON_ANGLE = 90;
+//static constexpr int DEFAULT_RIGHT_ELEVON_ANGLE = 90;
+
+// For fixed wing trainer
 static constexpr int DEFAULT_LEFT_ELEVON_ANGLE = 90;
 static constexpr int DEFAULT_RIGHT_ELEVON_ANGLE = 90;
 

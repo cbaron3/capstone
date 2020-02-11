@@ -58,7 +58,7 @@ PID headingPID(&headingInput, &headingOutput, &headingSetpoint, ROLL_KP, ROLL_KI
 volatile float new_yaw = 0.0f, new_pitch = 0.0f, new_roll = 0.0f;
 
 enum mode_type {MODE_MANUAL = 0, MODE_AUTO = 1};
-mode_type mode = MODE_MANUAL;
+mode_type mode = MODE_AUTO;
 
 const unsigned long THREAD_DELAY_MS = 1000;
 
@@ -218,15 +218,15 @@ void thread_manual() {
 volatile bool new_ypr = false;
 const unsigned long AUTO_INTERVAL_MS = 10;
 
-static constexpr float SERVO_INC = 2.0f;
-float SERVO_INC_MS = 10.0f;
+static constexpr float SERVO_INC = 1.0f;
+float SERVO_INC_MS = 1.5f;
 
 void thread_auto() {
   // Wait so thread does not start right away
   delay(THREAD_DELAY_MS);
 
-  int left_angle = DEFAULT_LEFT_ELEVON_ANGLE;
-  int right_angle  = DEFAULT_RIGHT_ELEVON_ANGLE;
+  float left_angle = DEFAULT_LEFT_ELEVON_ANGLE;
+  float right_angle  = DEFAULT_RIGHT_ELEVON_ANGLE;
   bool computed = false;
 
   unsigned long curr = 0, prev = 0;
@@ -249,9 +249,17 @@ void thread_auto() {
       pitchOutput = -1 * pitchOutput;
       headingOutput = -1 * headingOutput;
 
+      DEBUG_PRINT("Roll: "); DEBUG_PRINT(rollOutput);
+      DEBUG_PRINT("\tPitch: "); DEBUG_PRINTLN(pitchOutput);
+      
       // Basic elevon mixing; needs to be improveed
-      leftOutput = ((rollOutput + pitchOutput) / 2.0f) + 90.0f;
-      rightOutput = ((rollOutput - pitchOutput) / 2.0f) + 90.0f;
+
+      // Use for glider
+      // leftOutput = ((rollOutput + pitchOutput) / 2.0f) + 90.0f;
+      // rightOutput = ((rollOutput - pitchOutput) / 2.0f) + 90.0f;
+      // Use for fixed wing
+      leftOutput = (-1*pitchOutput) + 90.0f;
+      rightOutput = (-1*rollOutput) + 90.0f;
 
       computed = true;
       new_ypr = false;
@@ -290,22 +298,34 @@ void thread_auto() {
           //left_angle += ((unsigned long)(left_diff / 10.0f)) + 1.0f
          // right_angle += ((unsigned long)(left_diff / 10.0f)) + 1.0f
           
-          if(left_angle - leftOutput > 5.0f) {
+//          if(left_angle - leftOutput > 1.0f) {
+//            left_angle -= SERVO_INC;
+//          } else if(left_angle - leftOutput < 1.0f) {
+//            left_angle += SERVO_INC;
+//          } else {
+//            b = true;
+//          }
+//    
+//          if(right_angle - rightOutput > 1.0f) {
+//            right_angle -= SERVO_INC;
+//          } else if(right_angle - rightOutput < 1.0f) {
+//            right_angle += SERVO_INC;
+//          } else {
+//            if(b == true) {
+//              //SERVO_INC_MS = 5.0f;
+//            }
+//          }
+
+          if(left_angle > leftOutput) {
             left_angle -= SERVO_INC;
-          } else if(left_angle - leftOutput < 5.0f) {
+          } else if(left_angle < leftOutput) {
             left_angle += SERVO_INC;
-          } else {
-            b = true;
           }
     
-          if(right_angle - rightOutput > 5.0f) {
+          if(right_angle > rightOutput) {
             right_angle -= SERVO_INC;
-          } else if(right_angle - rightOutput < 5.0f) {
+          } else if(right_angle < rightOutput) {
             right_angle += SERVO_INC;
-          } else {
-            if(b == true) {
-              //SERVO_INC_MS = 5.0f;
-            }
           }
 
           //eft_elevon.write(left_angle);
@@ -313,10 +333,10 @@ void thread_auto() {
 
           // Ramp up to target angle by adding or subtracting until target is reached. then increase delay. 
           // left_elevon.writeMicroseconds(map_generic(left_angle, SERVO_MIN_ANGLE, SERVO_MAX_ANGLE, SERVO_MIN_MS, SERVO_MAX_MS));
-          left_elevon.writeMicroseconds(map_generic(left_angle, SERVO_MIN_ANGLE, SERVO_MAX_ANGLE, SERVO_MIN_MS, SERVO_MAX_MS));
+          left_elevon.writeMicroseconds((map_generic(left_angle, SERVO_MIN_ANGLE, SERVO_MAX_ANGLE, SERVO_MIN_MS, SERVO_MAX_MS) - 35));
           
           // right_elevon.writeMicroseconds(map_generic(right_angle, SERVO_MIN_ANGLE, SERVO_MAX_ANGLE, SERVO_MIN_MS, SERVO_MAX_MS));
-          right_elevon.writeMicroseconds(map_generic(right_angle, SERVO_MIN_ANGLE, SERVO_MAX_ANGLE, 1100, 2000));
+          right_elevon.writeMicroseconds((map_generic(right_angle, SERVO_MIN_ANGLE, SERVO_MAX_ANGLE, SERVO_MIN_MS, SERVO_MAX_MS) - 35));
       } else {
         //threads.yield();
       }
