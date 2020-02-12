@@ -5,7 +5,8 @@
 
 // IMU functionality based on the MPU9250
 #include "IMU.hpp"
-MPU9250 mpu9250(Wire, 0x68);
+IMU* imu;
+imu = new MPU9250_AHRS();
 
 // GPS functionalty based on Adafruit GPS using AdafruitGPS interrupt library
 #include "GPS.hpp"
@@ -137,7 +138,7 @@ void thread_gps() {
 /*************************************/
 /* Thread for polling the I2C sensor */ 
 /*************************************/
-IMU::MPU9250Data imu_data;
+IMU::Data imu_data;
 BARO::BaroData baro_data;
 
 volatile bool new_imu = false;
@@ -161,7 +162,7 @@ void thread_i2c() {
         prev_imu = curr_imu;
 
         // Read data
-        imu_data = IMU::read_data(mpu9250);
+        imu->update();
         
         new_imu = true;
       }
@@ -335,9 +336,9 @@ void update_controller(void) {
     
     
     // Set PID inputs
-    CONTROLLER::pitch_input = imu_data.pitch;
-    CONTROLLER::roll_input  = imu_data.roll;
-    CONTROLLER::yaw_input   = imu_data.yaw;
+    CONTROLLER::pitch_input = imu->get_pitch();
+    CONTROLLER::roll_input  = imu->get_roll();
+    CONTROLLER::yaw_input   = imu->get_yaw();
 
     // TODO: Add moving average to the roll, pitch, and yaw values
     DEBUG_PRINT("PID Input: ");
@@ -359,7 +360,7 @@ void setup() {
   DEBUG_START(115200);
 
   // Initialize sensors
-  IMU::init(mpu9250);
+  imu->init();
   GPS::init(adafruit_gps);
   BARO::init(mpl3115);
 
@@ -374,9 +375,9 @@ void setup() {
 
   // Call calibration routines if necessary
   // NOTE: Accel and Mag save results in EEPROM
-  if(CALIBRATE_ACCEL) IMU::calibrate(mpu9250, IMU::ACCEL);
-  if(CALIBRATE_GYRO)  IMU::calibrate(mpu9250, IMU::GYRO);
-  if(CALIBRATE_MAG)   IMU::calibrate(mpu9250, IMU::MAG);
+  if(CALIBRATE_ACCEL) imu->calibrate(IMU::ACCEL);
+  if(CALIBRATE_GYRO)  imu->calibrate(IMU::GYRO);
+  if(CALIBRATE_MAG)   imu->calibrate(IMU::MAG);
   if(CALIBRATE_BARO)  BARO::calibrate(mpl3115, ALTITUDE_BIAS);
 
   CONTROLLER::init(roll_control, pitch_control, yaw_control);
