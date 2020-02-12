@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="9.5.2">
+<eagle version="9.4.0">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
@@ -11179,6 +11179,12 @@ DIN A4, with small doc field</description>
 <part name="GND16" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
 <part name="GND10" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
 <part name="GND11" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
+<part name="GND17" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
+<part name="GND18" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
+<part name="S3" library="pinhead" library_urn="urn:adsk.eagle:library:325" deviceset="PINHD-1X3" device="" package3d_urn="urn:adsk.eagle:package:22458/2"/>
+<part name="RC3" library="pinhead" library_urn="urn:adsk.eagle:library:325" deviceset="PINHD-1X3" device="" package3d_urn="urn:adsk.eagle:package:22458/2"/>
+<part name="GND19" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
+<part name="GND20" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -11329,6 +11335,26 @@ DIN A4, with small doc field</description>
 <instance part="GND11" gate="1" x="7.62" y="198.12" smashed="yes">
 <attribute name="VALUE" x="5.08" y="195.58" size="1.778" layer="96"/>
 </instance>
+<instance part="GND17" gate="1" x="132.08" y="190.5" smashed="yes" rot="R270">
+<attribute name="VALUE" x="129.54" y="193.04" size="1.778" layer="96" rot="R270"/>
+</instance>
+<instance part="GND18" gate="1" x="132.08" y="210.82" smashed="yes" rot="R270">
+<attribute name="VALUE" x="129.54" y="213.36" size="1.778" layer="96" rot="R270"/>
+</instance>
+<instance part="S3" gate="A" x="137.16" y="81.28" smashed="yes">
+<attribute name="NAME" x="130.81" y="86.995" size="1.778" layer="95"/>
+<attribute name="VALUE" x="130.81" y="73.66" size="1.778" layer="96"/>
+</instance>
+<instance part="RC3" gate="A" x="149.86" y="22.86" smashed="yes">
+<attribute name="NAME" x="143.51" y="28.575" size="1.778" layer="95"/>
+<attribute name="VALUE" x="143.51" y="15.24" size="1.778" layer="96"/>
+</instance>
+<instance part="GND19" gate="1" x="121.92" y="73.66" smashed="yes">
+<attribute name="VALUE" x="119.38" y="71.12" size="1.778" layer="96"/>
+</instance>
+<instance part="GND20" gate="1" x="137.16" y="17.78" smashed="yes">
+<attribute name="VALUE" x="134.62" y="15.24" size="1.778" layer="96"/>
+</instance>
 </instances>
 <busses>
 </busses>
@@ -11451,9 +11477,6 @@ DIN A4, with small doc field</description>
 <pinref part="GND10" gate="1" pin="GND"/>
 </segment>
 <segment>
-<pinref part="U5" gate="G$1" pin="DIO0"/>
-<wire x1="10.16" y1="218.44" x2="7.62" y2="218.44" width="0.1524" layer="91"/>
-<wire x1="7.62" y1="218.44" x2="7.62" y2="215.9" width="0.1524" layer="91"/>
 <pinref part="U5" gate="G$1" pin="DIO1"/>
 <wire x1="7.62" y1="215.9" x2="7.62" y2="213.36" width="0.1524" layer="91"/>
 <wire x1="7.62" y1="213.36" x2="7.62" y2="210.82" width="0.1524" layer="91"/>
@@ -11461,7 +11484,6 @@ DIN A4, with small doc field</description>
 <wire x1="7.62" y1="208.28" x2="7.62" y2="205.74" width="0.1524" layer="91"/>
 <wire x1="7.62" y1="205.74" x2="7.62" y2="200.66" width="0.1524" layer="91"/>
 <wire x1="10.16" y1="215.9" x2="7.62" y2="215.9" width="0.1524" layer="91"/>
-<junction x="7.62" y="215.9"/>
 <pinref part="U5" gate="G$1" pin="DIO2"/>
 <wire x1="10.16" y1="213.36" x2="7.62" y2="213.36" width="0.1524" layer="91"/>
 <junction x="7.62" y="213.36"/>
@@ -11475,6 +11497,27 @@ DIN A4, with small doc field</description>
 <wire x1="10.16" y1="205.74" x2="7.62" y2="205.74" width="0.1524" layer="91"/>
 <junction x="7.62" y="205.74"/>
 <pinref part="GND11" gate="1" pin="GND"/>
+</segment>
+<segment>
+<pinref part="GND18" gate="1" pin="GND"/>
+<pinref part="U4" gate="G$1" pin="FSYNC"/>
+<wire x1="134.62" y1="210.82" x2="142.24" y2="210.82" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<pinref part="GND17" gate="1" pin="GND"/>
+<pinref part="U4" gate="G$1" pin="AD0"/>
+<wire x1="134.62" y1="190.5" x2="142.24" y2="190.5" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<pinref part="GND20" gate="1" pin="GND"/>
+<pinref part="RC3" gate="A" pin="3"/>
+<wire x1="137.16" y1="20.32" x2="147.32" y2="20.32" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<pinref part="GND19" gate="1" pin="GND"/>
+<pinref part="S3" gate="A" pin="3"/>
+<wire x1="121.92" y1="76.2" x2="121.92" y2="78.74" width="0.1524" layer="91"/>
+<wire x1="121.92" y1="78.74" x2="134.62" y2="78.74" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="SCL" class="0">
@@ -11583,7 +11626,7 @@ DIN A4, with small doc field</description>
 <pinref part="U$1" gate="G$1" pin="15/A1/T"/>
 <wire x1="67.14" y1="120.84" x2="63.5" y2="120.84" width="0.1524" layer="91"/>
 <wire x1="63.5" y1="120.84" x2="63.5" y2="119.38" width="0.1524" layer="91"/>
-<label x="63.246" y="117.602" size="1.778" layer="95" rot="R180" xref="yes"/>
+<label x="53.086" y="120.142" size="1.778" layer="95" rot="R180" xref="yes"/>
 </segment>
 </net>
 <net name="SERVO1" class="0">
@@ -11659,6 +11702,11 @@ DIN A4, with small doc field</description>
 <wire x1="112.86" y1="158.94" x2="121.92" y2="158.94" width="0.1524" layer="91"/>
 <wire x1="121.92" y1="158.94" x2="121.92" y2="160.02" width="0.1524" layer="91"/>
 <label x="116.84" y="160.02" size="1.778" layer="95"/>
+</segment>
+<segment>
+<pinref part="S3" gate="A" pin="2"/>
+<wire x1="134.62" y1="81.28" x2="121.92" y2="81.28" width="0.1524" layer="91"/>
+<label x="121.92" y="81.28" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="LED1" class="0">
@@ -11774,10 +11822,50 @@ DIN A4, with small doc field</description>
 <label x="91.44" y="220.98" size="1.778" layer="95"/>
 </segment>
 <segment>
-<pinref part="U$1" gate="G$1" pin="4/CAN-RX-PWM"/>
-<wire x1="67.14" y1="148.78" x2="53.34" y2="148.78" width="0.1524" layer="91"/>
-<wire x1="53.34" y1="148.78" x2="53.34" y2="149.86" width="0.1524" layer="91"/>
 <label x="53.34" y="149.86" size="1.778" layer="95"/>
+<pinref part="U$1" gate="G$1" pin="2"/>
+<wire x1="67.14" y1="153.86" x2="53.34" y2="153.86" width="0.1524" layer="91"/>
+<wire x1="53.34" y1="153.86" x2="53.34" y2="148.78" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="RADIO_INT" class="0">
+<segment>
+<pinref part="U5" gate="G$1" pin="DIO0"/>
+<wire x1="10.16" y1="218.44" x2="2.54" y2="218.44" width="0.1524" layer="91"/>
+<wire x1="2.54" y1="218.44" x2="2.54" y2="187.96" width="0.1524" layer="91"/>
+<label x="2.54" y="187.96" size="1.778" layer="95"/>
+</segment>
+<segment>
+<pinref part="U$1" gate="G$1" pin="16/A2/T"/>
+<wire x1="67.14" y1="118.3" x2="38.1" y2="118.3" width="0.1524" layer="91"/>
+<wire x1="38.1" y1="118.3" x2="38.1" y2="119.38" width="0.1524" layer="91"/>
+<label x="25.4" y="119.38" size="1.778" layer="95"/>
+</segment>
+</net>
+<net name="SERVO3" class="0">
+<segment>
+<pinref part="U$1" gate="G$1" pin="3/CAN-TX/PWM"/>
+<wire x1="67.14" y1="151.32" x2="60.96" y2="151.32" width="0.1524" layer="91"/>
+<wire x1="60.96" y1="151.32" x2="60.96" y2="165.1" width="0.1524" layer="91"/>
+<label x="60.96" y="165.1" size="1.778" layer="95"/>
+</segment>
+<segment>
+<pinref part="S3" gate="A" pin="1"/>
+<wire x1="134.62" y1="83.82" x2="121.92" y2="83.82" width="0.1524" layer="91"/>
+<label x="119.38" y="83.82" size="1.778" layer="95"/>
+</segment>
+</net>
+<net name="RECVR3" class="0">
+<segment>
+<pinref part="U$1" gate="G$1" pin="4/CAN-RX-PWM"/>
+<wire x1="67.14" y1="148.78" x2="55.88" y2="148.78" width="0.1524" layer="91"/>
+<wire x1="55.88" y1="148.78" x2="55.88" y2="165.1" width="0.1524" layer="91"/>
+<label x="55.88" y="165.1" size="1.778" layer="95" rot="R180"/>
+</segment>
+<segment>
+<pinref part="RC3" gate="A" pin="1"/>
+<wire x1="147.32" y1="25.4" x2="132.08" y2="25.4" width="0.1524" layer="91"/>
+<label x="129.54" y="25.4" size="1.778" layer="95"/>
 </segment>
 </net>
 </nets>

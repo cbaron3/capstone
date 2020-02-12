@@ -4,17 +4,27 @@
  * File for functions that interface with the IMU; MPU9250.
  * Makes use of the MPU9250 Bolderflight library 
  */
+ 
 #include "MPU9250.h"
 #include "LEDS.hpp"
 #include <EEPROM.h>
+#include "src/uNavAHRS/uNavAHRS.h"
 
 /**
  * GPS namespace; encapsulates all related functions
  */
 namespace IMU {
+  struct MPU9250Data {
+    float yaw, pitch, roll; // degrees
+  };
+  
   namespace {
     uint8_t EepromBuffer[48];
     unsigned int MAG_OFFSET = 24;
+
+    uNavAHRS filter;
+
+    MPU9250Data data;
 
     inline void calibrate_accel(MPU9250& imu) {
       DEBUG_PRINTLN("Starting Accelerometer Calibration");
@@ -96,11 +106,7 @@ namespace IMU {
   
   }
 
-  struct MPU9250Data {
-    float ax, ay, az; // meters/s^s
-    float gx, gy, gz; // rad/s
-    float mx, my, mz; // uT
-  };
+  
 
   enum SENSOR { ACCEL = 1, GYRO = 2, MAG = 4 };
   
@@ -153,41 +159,33 @@ namespace IMU {
     imu.setDlpfBandwidth(MPU9250::DLPF_BANDWIDTH_41HZ);
     // setting SRD to 19 for a 50 Hz update rate
     imu.setSrd(19);
+
+    
   }
 
   inline MPU9250Data read_data(MPU9250& imu) {
     imu.readSensor();
     
-    MPU9250Data data;
+    
 
-    data.ax = imu.getAccelX_mss();
-    data.ay = imu.getAccelY_mss();
-    data.az = imu.getAccelZ_mss();
+    // NOTE: This will take two minute for good results!
+    filter.update(imu.getAccelX_mss(), imu.getAccelY_mss(), imu.getAccelZ_mss(), 
+                  imu.getGyroX_rads(), imu.getGyroY_rads(), imu.getGyroZ_rads(),
+                  imu.getMagX_uT(), imu.getMagY_uT(), imu.getMagZ_uT());
 
-    data.gx = imu.getGyroX_rads();
-    data.gy = imu.getGyroY_rads();
-    data.gz = imu.getGyroZ_rads();
-
-    data.mx = imu.getMagX_uT();
-    data.my = imu.getMagY_uT();
-    data.mz = imu.getMagZ_uT();
+    data.pitch = filter.getPitch_rad()*RAD_TO_DEG;
+    data.roll =  filter.getRoll_rad()*RAD_TO_DEG;
+    data.yaw =   filter.getYaw_rad()*RAD_TO_DEG;
     
     return data;
   }
 
   inline void print_data(const MPU9250Data& data) {
     // display the data
-    DEBUG_PRINT(" AX (m/s^s): "); DEBUG_PRINT(data.ax);
-    DEBUG_PRINT("\t AY (m/s^s): "); DEBUG_PRINT(data.ay);
-    DEBUG_PRINT("\t AZ (m/s^s): "); DEBUG_PRINT(data.az);
-    
-    DEBUG_PRINT("\t GX (rad/s): "); DEBUG_PRINT(data.gx);
-    DEBUG_PRINT("\t GY (rad/s): "); DEBUG_PRINT(data.gy);
-    DEBUG_PRINT("\t GZ (rad/s): "); DEBUG_PRINT(data.gz);
 
-    DEBUG_PRINT("\t MX (uT): "); DEBUG_PRINT(data.mx);
-    DEBUG_PRINT("\t MY (uT): "); DEBUG_PRINT(data.my);
-    DEBUG_PRINT("\t MZ (uT): "); DEBUG_PRINT(data.mz);
+    DEBUG_PRINT("\t Pitch (deg): "); DEBUG_PRINT(data.pitch);
+    DEBUG_PRINT("\t Roll (deg): "); DEBUG_PRINT(data.roll);
+    DEBUG_PRINT("\t Yaw (deg): "); DEBUG_PRINT(data.yaw);
     DEBUG_PRINTLN("");
   }
 

@@ -11149,8 +11149,8 @@ DIN A4, with small doc field</description>
 <part name="H2" library="holes" library_urn="urn:adsk.eagle:library:237" deviceset="MOUNT-HOLE" device="2.8" package3d_urn="urn:adsk.eagle:package:14271/1"/>
 <part name="H3" library="holes" library_urn="urn:adsk.eagle:library:237" deviceset="MOUNT-HOLE" device="2.8" package3d_urn="urn:adsk.eagle:package:14271/1"/>
 <part name="H4" library="holes" library_urn="urn:adsk.eagle:library:237" deviceset="MOUNT-HOLE" device="2.8" package3d_urn="urn:adsk.eagle:package:14271/1"/>
-<part name="PAD1" library="wirepad" library_urn="urn:adsk.eagle:library:412" deviceset="2,54/0,9" device="" package3d_urn="urn:adsk.eagle:package:30847/1"/>
-<part name="PAD2" library="wirepad" library_urn="urn:adsk.eagle:library:412" deviceset="2,54/0,9" device="" package3d_urn="urn:adsk.eagle:package:30847/1"/>
+<part name="VIN" library="wirepad" library_urn="urn:adsk.eagle:library:412" deviceset="2,54/0,9" device="" package3d_urn="urn:adsk.eagle:package:30847/1"/>
+<part name="GND" library="wirepad" library_urn="urn:adsk.eagle:library:412" deviceset="2,54/0,9" device="" package3d_urn="urn:adsk.eagle:package:30847/1"/>
 <part name="S1" library="pinhead" library_urn="urn:adsk.eagle:library:325" deviceset="PINHD-1X3" device="" package3d_urn="urn:adsk.eagle:package:22458/2"/>
 <part name="S2" library="pinhead" library_urn="urn:adsk.eagle:library:325" deviceset="PINHD-1X3" device="" package3d_urn="urn:adsk.eagle:package:22458/2"/>
 <part name="RC1" library="pinhead" library_urn="urn:adsk.eagle:library:325" deviceset="PINHD-1X3" device="" package3d_urn="urn:adsk.eagle:package:22458/2"/>
@@ -11164,7 +11164,7 @@ DIN A4, with small doc field</description>
 <part name="GND2" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
 <part name="GND3" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
 <part name="GND4" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
-<part name="PAD3" library="wirepad" library_urn="urn:adsk.eagle:library:412" deviceset="2,54/0,9" device="" package3d_urn="urn:adsk.eagle:package:30847/1"/>
+<part name="ANT" library="wirepad" library_urn="urn:adsk.eagle:library:412" deviceset="2,54/0,9" device="" package3d_urn="urn:adsk.eagle:package:30847/1"/>
 <part name="C2" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="C-US" device="C1206" package3d_urn="urn:adsk.eagle:package:23618/2" value="0.1u"/>
 <part name="GND5" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
 <part name="GND6" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
@@ -11179,6 +11179,8 @@ DIN A4, with small doc field</description>
 <part name="GND16" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
 <part name="GND10" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
 <part name="GND11" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
+<part name="GND17" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
+<part name="GND18" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -11224,11 +11226,11 @@ DIN A4, with small doc field</description>
 <attribute name="NAME" x="165.608" y="111.1758" size="1.778" layer="95" rot="R180"/>
 <attribute name="VALUE" x="165.608" y="114.2238" size="1.778" layer="96" rot="R180"/>
 </instance>
-<instance part="PAD1" gate="1" x="83.82" y="63.5" smashed="yes">
+<instance part="VIN" gate="1" x="83.82" y="63.5" smashed="yes">
 <attribute name="NAME" x="82.677" y="65.3542" size="1.778" layer="95"/>
 <attribute name="VALUE" x="82.677" y="60.198" size="1.778" layer="96"/>
 </instance>
-<instance part="PAD2" gate="1" x="83.82" y="50.8" smashed="yes">
+<instance part="GND" gate="1" x="83.82" y="50.8" smashed="yes">
 <attribute name="NAME" x="82.677" y="52.6542" size="1.778" layer="95"/>
 <attribute name="VALUE" x="82.677" y="47.498" size="1.778" layer="96"/>
 </instance>
@@ -11281,7 +11283,7 @@ DIN A4, with small doc field</description>
 <instance part="GND4" gate="1" x="132.08" y="220.98" smashed="yes" rot="R270">
 <attribute name="VALUE" x="129.54" y="223.52" size="1.778" layer="96" rot="R270"/>
 </instance>
-<instance part="PAD3" gate="1" x="2.54" y="220.98" smashed="yes">
+<instance part="ANT" gate="1" x="2.54" y="220.98" smashed="yes">
 <attribute name="NAME" x="1.397" y="222.8342" size="1.778" layer="95"/>
 <attribute name="VALUE" x="1.397" y="217.678" size="1.778" layer="96"/>
 </instance>
@@ -11328,6 +11330,12 @@ DIN A4, with small doc field</description>
 </instance>
 <instance part="GND11" gate="1" x="7.62" y="198.12" smashed="yes">
 <attribute name="VALUE" x="5.08" y="195.58" size="1.778" layer="96"/>
+</instance>
+<instance part="GND17" gate="1" x="132.08" y="190.5" smashed="yes" rot="R270">
+<attribute name="VALUE" x="129.54" y="193.04" size="1.778" layer="96" rot="R270"/>
+</instance>
+<instance part="GND18" gate="1" x="132.08" y="210.82" smashed="yes" rot="R270">
+<attribute name="VALUE" x="129.54" y="213.36" size="1.778" layer="96" rot="R270"/>
 </instance>
 </instances>
 <busses>
@@ -11440,7 +11448,7 @@ DIN A4, with small doc field</description>
 <pinref part="GND15" gate="1" pin="GND"/>
 </segment>
 <segment>
-<pinref part="PAD2" gate="1" pin="P"/>
+<pinref part="GND" gate="1" pin="P"/>
 <pinref part="GND16" gate="1" pin="GND"/>
 <wire x1="86.36" y1="50.8" x2="91.44" y2="50.8" width="0.1524" layer="91"/>
 </segment>
@@ -11475,6 +11483,16 @@ DIN A4, with small doc field</description>
 <wire x1="10.16" y1="205.74" x2="7.62" y2="205.74" width="0.1524" layer="91"/>
 <junction x="7.62" y="205.74"/>
 <pinref part="GND11" gate="1" pin="GND"/>
+</segment>
+<segment>
+<pinref part="GND18" gate="1" pin="GND"/>
+<pinref part="U4" gate="G$1" pin="FSYNC"/>
+<wire x1="134.62" y1="210.82" x2="142.24" y2="210.82" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<pinref part="GND17" gate="1" pin="GND"/>
+<pinref part="U4" gate="G$1" pin="AD0"/>
+<wire x1="134.62" y1="190.5" x2="142.24" y2="190.5" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="SCL" class="0">
@@ -11515,7 +11533,7 @@ DIN A4, with small doc field</description>
 </net>
 <net name="N$1" class="0">
 <segment>
-<pinref part="PAD3" gate="1" pin="P"/>
+<pinref part="ANT" gate="1" pin="P"/>
 <pinref part="U5" gate="G$1" pin="ANT"/>
 <wire x1="5.08" y1="220.98" x2="10.16" y2="220.98" width="0.1524" layer="91"/>
 </segment>
@@ -11650,7 +11668,7 @@ DIN A4, with small doc field</description>
 <label x="144.78" y="60.96" size="1.778" layer="95"/>
 </segment>
 <segment>
-<pinref part="PAD1" gate="1" pin="P"/>
+<pinref part="VIN" gate="1" pin="P"/>
 <label x="97.79" y="64.516" size="1.778" layer="95"/>
 <wire x1="86.36" y1="63.5" x2="101.6" y2="63.5" width="0.1524" layer="91"/>
 </segment>
@@ -11783,6 +11801,22 @@ DIN A4, with small doc field</description>
 </nets>
 </sheet>
 </sheets>
+<errors>
+<approved hash="204,1,112.86,138.62,U$1,AGND,,,,"/>
+<approved hash="204,1,112.86,153.86,U$1,VBAT,,,,"/>
+<approved hash="113,1,41.91,63.8217,LED1,,,,,"/>
+<approved hash="113,1,41.91,51.1217,LED2,,,,,"/>
+<approved hash="113,1,41.91,38.4217,LED3,,,,,"/>
+<approved hash="113,1,41.91,25.7217,LED4,,,,,"/>
+<approved hash="113,1,86.0806,64.7675,VIN,,,,,"/>
+<approved hash="113,1,86.0806,52.0675,GND,,,,,"/>
+<approved hash="113,1,134.857,62.4561,S1,,,,,"/>
+<approved hash="113,1,155.177,62.4561,S2,,,,,"/>
+<approved hash="113,1,134.857,39.5961,RC1,,,,,"/>
+<approved hash="113,1,90.066,131.976,FRAME1,,,,,"/>
+<approved hash="113,1,4.8006,222.247,ANT,,,,,"/>
+<approved hash="113,1,170.417,39.5961,RC2,,,,,"/>
+</errors>
 </schematic>
 </drawing>
 <compatibility>

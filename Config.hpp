@@ -13,11 +13,6 @@ using Pin = unsigned int;
 enum mode_type {MODE_MANUAL = 0, MODE_AUTO = 1};
 static constexpr mode_type DEFAULT_MODE = MODE_MANUAL;
 
-/* DELAYS */
-const unsigned long THREAD_DELAY_MS = 1000;
-const unsigned long SAMPLE_TIME_MS = 20;
-const unsigned long MANUAL_INTERVAL_MS = 20;    // 50 HZ Servos
-const unsigned long AUTO_INTERVAL_MS = 20;      // 50 HZ Servos
 
 #define  DEBUG
 #define  TEST_TRAINER
@@ -53,7 +48,7 @@ const String NAMES[] = {"GND", "PLANE", "G1", "G2"};
 static constexpr bool CALIBRATE_ACCEL = false;
 static constexpr bool CALIBRATE_GYRO = false;
 static constexpr bool CALIBRATE_MAG = false;
-static constexpr bool CALIBRATE_BARO = false;
+static constexpr bool CALIBRATE_BARO = true;
 
 /* BOOT MODE */ 
 enum class BOOT_MODE {LED_TEST, LED_TEST_RANDOM};
@@ -79,7 +74,12 @@ static constexpr double YAW_MAX_LIMIT = 90;
 static constexpr bool INVERT_PID = true;
 
 /* BAROMETER */
-static constexpr double ALTITUDE_BIAS = 250.0f; // In metres
+static constexpr double ALTITUDE_BIAS = 238.0f; // In metres
+
+// Sampling intervals of 0=6 ms , 1=10, 2=18, 3=34, 4=66, 5=130, 6=258, and 7=512
+static constexpr unsigned long OVER_SAMPLE_PERIODS_MS[] = {6, 10, 18, 34, 66, 130, 258, 512};
+static constexpr int OVER_SAMPLE_RATIO = 7;
+
 
 /* SYSTEM FLAGS */
 static constexpr bool DEBUG_MODE = true;  // Block usage of Serial printing if not debugging to speed up system
@@ -141,3 +141,10 @@ inline X map_generic(X x, M in_min, N in_max, O out_min, Q out_max){
 /* GPS */
 static constexpr HardwareSerial *GPS_PORT = &Serial2;
 static constexpr Pin GPS_FIX =  4;
+
+/* DELAYS */
+const unsigned long THREAD_DELAY_MS = 1000;
+const unsigned long IMU_SAMPLE_INTERVAL_MS = 20;
+const unsigned long MANUAL_INTERVAL_MS = 20;    // 50 HZ Servos
+const unsigned long AUTO_INTERVAL_MS = 20;      // 50 HZ Servos
+static constexpr int BARO_SAMPLE_INTERVAL_MS = OVER_SAMPLE_PERIODS_MS[OVER_SAMPLE_RATIO];

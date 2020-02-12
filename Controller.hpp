@@ -19,13 +19,13 @@ namespace CONTROLLER {
         yaw.SetOutputLimits(YAW_MIN_LIMIT, YAW_MAX_LIMIT);
 
         roll.SetMode(AUTOMATIC);
-        roll.SetSampleTime(SAMPLE_TIME_MS);
+        roll.SetSampleTime(IMU_SAMPLE_INTERVAL_MS);
 
         pitch.SetMode(AUTOMATIC);
-        pitch.SetSampleTime(SAMPLE_TIME_MS);
+        pitch.SetSampleTime(IMU_SAMPLE_INTERVAL_MS);
 
         yaw.SetMode(AUTOMATIC);
-        yaw.SetSampleTime(SAMPLE_TIME_MS);
+        yaw.SetSampleTime(IMU_SAMPLE_INTERVAL_MS);
     }
 
     inline void update(PID& roll, PID& pitch, PID& yaw) {

@@ -32,9 +32,6 @@ RH_RF95 radio {RADIO_CS, RADIO_INT};
 // Pins reading PWM from the RC receiver
 #include "Receiver.hpp"
 
-#include "src/uNavAHRS/uNavAHRS.h"
-uNavAHRS filter;
-
 #include "Controller.hpp"
 
 // Controller for pitch
@@ -140,35 +137,42 @@ void thread_gps() {
 /*************************************/
 /* Thread for polling the I2C sensor */ 
 /*************************************/
-
 IMU::MPU9250Data imu_data;
 BARO::BaroData baro_data;
 
-volatile bool new_i2c = false;
+volatile bool new_imu = false;
+volatile bool new_baro = false;
 
 void thread_i2c() {
   // Wait so thread does not start right away
   delay(THREAD_DELAY_MS);
 
-  unsigned long prev = 0, curr = 0;
+  unsigned long prev_imu = 0, curr_imu = 0;
+
+  unsigned long prev_baro = 0, curr_baro = 0;
 
   // Thread loop
   while(true) {
     
-    if(new_i2c == false) {
-
+    if(new_imu == false) {
       // Keep update rate for sensors at 20 Hz
-      curr = millis();
-      if(curr - prev >= SAMPLE_TIME_MS) {
-        prev = curr;
+      curr_imu = millis();
+      if(curr_imu - prev_imu >= IMU_SAMPLE_INTERVAL_MS) {
+        prev_imu = curr_imu;
 
         // Read data
         imu_data = IMU::read_data(mpu9250);
-        baro_data = BARO::read_data(mpl3115);
-      
-        new_i2c = true;
+        
+        new_imu = true;
       }
     } 
+    
+    curr_baro = millis();
+    if(curr_baro - prev_baro >= BARO_SAMPLE_INTERVAL_MS) {
+      prev_baro = curr_baro;
+      baro_data = BARO::read_data(mpl3115);
+      
+    }
 
     threads.yield();
 
@@ -205,8 +209,6 @@ void thread_manual() {
 /***********************************************/
 /* Thread for automatic control; stabilization */ 
 /***********************************************/
-
-volatile bool new_ypr = false;
 
 void thread_auto() {
   // Wait so thread does not start right away
@@ -330,25 +332,18 @@ void parse_cmds(void) {
  * @details Results in a flag being set that lets the auto thread know that new data has been received
  */
 void update_controller(void) {
-    // NOTE: This will take two minute for good results!
-    filter.update(imu_data.gx,imu_data.gy, imu_data.gz, 
-                  imu_data.ax, imu_data.ay, imu_data.az,
-                  imu_data.mx, imu_data.my, imu_data.mz);
-
-    new_pitch = filter.getPitch_rad()*RAD_TO_DEG;
-    new_roll =  filter.getRoll_rad()*RAD_TO_DEG;
-    new_yaw =   filter.getYaw_rad()*RAD_TO_DEG;
     
+    
+    // Set PID inputs
+    CONTROLLER::pitch_input = imu_data.pitch;
+    CONTROLLER::roll_input  = imu_data.roll;
+    CONTROLLER::yaw_input   = imu_data.yaw;
+
     // TODO: Add moving average to the roll, pitch, and yaw values
     DEBUG_PRINT("PID Input: ");
-    DEBUG_PRINT("\tRoll: "); DEBUG_PRINT(new_roll);
-    DEBUG_PRINT("\tPitch: "); DEBUG_PRINT(new_pitch);
-    DEBUG_PRINT("\tYaw: "); DEBUG_PRINT(new_yaw);
-
-    // Set PID inputs
-    CONTROLLER::pitch_input = new_pitch;
-    CONTROLLER::roll_input  = new_roll;
-    CONTROLLER::yaw_input   = new_yaw;
+    DEBUG_PRINT("\tRoll: "); DEBUG_PRINT(CONTROLLER::roll_input);
+    DEBUG_PRINT("\tPitch: "); DEBUG_PRINT(CONTROLLER::pitch_input);
+    DEBUG_PRINT("\tYaw: "); DEBUG_PRINT(CONTROLLER::yaw_input);
 
     // Update controller values
     CONTROLLER::update(roll_control, pitch_control, yaw_control);
@@ -434,8 +429,8 @@ void loop() {
   }
 
   // For some reason, cannot put filter in thread
-  if(new_i2c == true) {
-    update_controller();
-    new_i2c = false;
+  if(new_imu == true) {
+    // update_controller();
+    new_imu = false;
   }
 }

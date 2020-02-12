@@ -2046,7 +2046,8 @@ design rules under a new name.</description>
 <wire x1="26.59" y1="56.53" x2="29.322" y2="56.53" width="0.1524" layer="1"/>
 <wire x1="29.322" y1="56.53" x2="29.337" y2="56.515" width="0.1524" layer="1"/>
 <via x="29.337" y="56.515" extent="1-16" drill="0.35"/>
-<wire x1="26.59" y1="42.53" x2="29.195" y2="42.53" width="0.1524" layer="1"/>
+<wire x1="26.59" y1="42.53" x2="26.67" y2="42.53" width="0.1524" layer="1"/>
+<wire x1="26.67" y1="42.53" x2="29.195" y2="42.53" width="0.1524" layer="1"/>
 <wire x1="29.195" y1="42.53" x2="29.21" y2="42.545" width="0.1524" layer="1"/>
 <via x="29.21" y="42.545" extent="1-16" drill="0.35"/>
 <wire x1="41.91" y1="44.45" x2="39.243" y2="44.45" width="0.1524" layer="1"/>
@@ -2084,15 +2085,18 @@ design rules under a new name.</description>
 <contactref element="U5" pad="11"/>
 <contactref element="U5" pad="12"/>
 <contactref element="U5" pad="7"/>
-<wire x1="41.99" y1="56.53" x2="41.99" y2="52.53" width="0.1524" layer="1"/>
-<wire x1="41.99" y1="48.53" x2="41.99" y2="44.53" width="0.1524" layer="1"/>
-<wire x1="41.99" y1="44.53" x2="41.91" y2="44.45" width="0.1524" layer="1"/>
 <wire x1="41.99" y1="56.53" x2="39.258" y2="56.53" width="0.1524" layer="1"/>
 <wire x1="39.258" y1="56.53" x2="39.243" y2="56.515" width="0.1524" layer="1"/>
 <via x="39.243" y="56.515" extent="1-16" drill="0.35"/>
-<wire x1="41.99" y1="56.53" x2="41.99" y2="54.53" width="0" layer="19" extent="1-1"/>
-<wire x1="41.99" y1="46.53" x2="41.99" y2="48.53" width="0" layer="19" extent="1-1"/>
-<wire x1="26.59" y1="44.53" x2="26.59" y2="42.53" width="0" layer="19" extent="1-1"/>
+<wire x1="41.99" y1="56.53" x2="41.99" y2="54.53" width="0.1524" layer="1"/>
+<wire x1="41.99" y1="54.53" x2="41.99" y2="52.53" width="0.1524" layer="1"/>
+<wire x1="41.99" y1="48.53" x2="41.99" y2="46.53" width="0.1524" layer="1"/>
+<wire x1="41.99" y1="46.53" x2="41.99" y2="44.53" width="0.1524" layer="1"/>
+<wire x1="41.99" y1="44.53" x2="41.91" y2="44.45" width="0.1524" layer="1"/>
+<wire x1="26.59" y1="44.53" x2="26.67" y2="44.45" width="0.1524" layer="1"/>
+<wire x1="26.67" y1="44.45" x2="26.67" y2="42.53" width="0.1524" layer="1"/>
+<contactref element="U4" pad="FSYNC"/>
+<contactref element="U4" pad="AD0"/>
 </signal>
 <signal name="AGND">
 <contactref element="U$1" pad="AGND"/>

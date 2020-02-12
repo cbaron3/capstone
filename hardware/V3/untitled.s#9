@@ -11178,6 +11178,7 @@ DIN A4, with small doc field</description>
 <part name="GND15" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
 <part name="GND16" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
 <part name="GND10" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
+<part name="GND11" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -11325,6 +11326,9 @@ DIN A4, with small doc field</description>
 <instance part="GND10" gate="1" x="134.62" y="152.4" smashed="yes" rot="R90">
 <attribute name="VALUE" x="137.16" y="149.86" size="1.778" layer="96" rot="R90"/>
 </instance>
+<instance part="GND11" gate="1" x="7.62" y="198.12" smashed="yes">
+<attribute name="VALUE" x="5.08" y="195.58" size="1.778" layer="96"/>
+</instance>
 </instances>
 <busses>
 </busses>
@@ -11445,6 +11449,32 @@ DIN A4, with small doc field</description>
 <wire x1="112.86" y1="151.32" x2="132.08" y2="151.32" width="0.1524" layer="91"/>
 <wire x1="132.08" y1="151.32" x2="132.08" y2="152.4" width="0.1524" layer="91"/>
 <pinref part="GND10" gate="1" pin="GND"/>
+</segment>
+<segment>
+<pinref part="U5" gate="G$1" pin="DIO0"/>
+<wire x1="10.16" y1="218.44" x2="7.62" y2="218.44" width="0.1524" layer="91"/>
+<wire x1="7.62" y1="218.44" x2="7.62" y2="215.9" width="0.1524" layer="91"/>
+<pinref part="U5" gate="G$1" pin="DIO1"/>
+<wire x1="7.62" y1="215.9" x2="7.62" y2="213.36" width="0.1524" layer="91"/>
+<wire x1="7.62" y1="213.36" x2="7.62" y2="210.82" width="0.1524" layer="91"/>
+<wire x1="7.62" y1="210.82" x2="7.62" y2="208.28" width="0.1524" layer="91"/>
+<wire x1="7.62" y1="208.28" x2="7.62" y2="205.74" width="0.1524" layer="91"/>
+<wire x1="7.62" y1="205.74" x2="7.62" y2="200.66" width="0.1524" layer="91"/>
+<wire x1="10.16" y1="215.9" x2="7.62" y2="215.9" width="0.1524" layer="91"/>
+<junction x="7.62" y="215.9"/>
+<pinref part="U5" gate="G$1" pin="DIO2"/>
+<wire x1="10.16" y1="213.36" x2="7.62" y2="213.36" width="0.1524" layer="91"/>
+<junction x="7.62" y="213.36"/>
+<pinref part="U5" gate="G$1" pin="DIO3"/>
+<wire x1="10.16" y1="210.82" x2="7.62" y2="210.82" width="0.1524" layer="91"/>
+<junction x="7.62" y="210.82"/>
+<pinref part="U5" gate="G$1" pin="DIO4"/>
+<wire x1="10.16" y1="208.28" x2="7.62" y2="208.28" width="0.1524" layer="91"/>
+<junction x="7.62" y="208.28"/>
+<pinref part="U5" gate="G$1" pin="DIO5"/>
+<wire x1="10.16" y1="205.74" x2="7.62" y2="205.74" width="0.1524" layer="91"/>
+<junction x="7.62" y="205.74"/>
+<pinref part="GND11" gate="1" pin="GND"/>
 </segment>
 </net>
 <net name="SCL" class="0">

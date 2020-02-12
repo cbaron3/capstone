@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="9.5.2">
+<eagle version="9.4.0">
 <drawing>
 <settings>
-<setting alwaysvectorfont="yes"/>
+<setting alwaysvectorfont="no"/>
 <setting verticaltext="up"/>
 </settings>
 <grid distance="50" unitdist="mil" unit="mil" style="lines" multiple="1" display="no" altdistance="5" altunitdist="mil" altunit="mil"/>
@@ -2079,7 +2079,6 @@ design rules under a new name.</description>
 <via x="62.23" y="59.69" extent="1-16" drill="0.35"/>
 <contactref element="U$1" pad="GND"/>
 <contactref element="U$1" pad="GND1"/>
-<contactref element="U5" pad="14"/>
 <contactref element="U5" pad="15"/>
 <contactref element="U5" pad="16"/>
 <contactref element="U5" pad="11"/>
@@ -2089,12 +2088,32 @@ design rules under a new name.</description>
 <wire x1="39.258" y1="56.53" x2="39.243" y2="56.515" width="0.1524" layer="1"/>
 <via x="39.243" y="56.515" extent="1-16" drill="0.35"/>
 <wire x1="41.99" y1="56.53" x2="41.99" y2="54.53" width="0.1524" layer="1"/>
-<wire x1="41.99" y1="54.53" x2="41.99" y2="52.53" width="0.1524" layer="1"/>
 <wire x1="41.99" y1="48.53" x2="41.99" y2="46.53" width="0.1524" layer="1"/>
 <wire x1="41.99" y1="46.53" x2="41.99" y2="44.53" width="0.1524" layer="1"/>
 <wire x1="41.99" y1="44.53" x2="41.91" y2="44.45" width="0.1524" layer="1"/>
 <wire x1="26.59" y1="44.53" x2="26.67" y2="44.45" width="0.1524" layer="1"/>
 <wire x1="26.67" y1="44.45" x2="26.67" y2="42.53" width="0.1524" layer="1"/>
+<contactref element="U4" pad="FSYNC"/>
+<contactref element="U4" pad="AD0"/>
+<wire x1="56.106" y1="57.15" x2="61.948" y2="57.15" width="0" layer="19" extent="1-1"/>
+<wire x1="50.8" y1="59.69" x2="56.106" y2="59.662" width="0" layer="19" extent="1-1"/>
+<wire x1="41.99" y1="56.53" x2="50.391" y2="57.15" width="0" layer="19" extent="1-1"/>
+<wire x1="41.99" y1="54.53" x2="41.99" y2="48.53" width="0" layer="19" extent="1-1"/>
+<wire x1="33.02" y1="57.15" x2="39.243" y2="56.515" width="0" layer="19" extent="1-1"/>
+<wire x1="34.29" y1="35.56" x2="39.243" y2="44.45" width="0" layer="19" extent="1-1"/>
+<wire x1="29.21" y1="42.545" x2="34.29" y2="35.56" width="0" layer="19" extent="1-1"/>
+<wire x1="16.383" y1="57.785" x2="26.59" y2="56.53" width="0" layer="19" extent="1-1"/>
+<wire x1="15.748" y1="48.26" x2="16.383" y2="57.785" width="0" layer="19" extent="1-1"/>
+<wire x1="10.668" y1="40.64" x2="15.748" y2="48.26" width="0" layer="19" extent="1-1"/>
+<wire x1="10.668" y1="33.02" x2="10.668" y2="40.64" width="0" layer="19" extent="1-1"/>
+<wire x1="54.61" y1="44.45" x2="41.99" y2="44.53" width="0" layer="19" extent="1-1"/>
+<wire x1="17.78" y1="14.605" x2="10.668" y2="33.02" width="0" layer="19" extent="1-1"/>
+<wire x1="15.24" y1="2.54" x2="17.78" y2="14.605" width="0" layer="19" extent="1-1"/>
+<wire x1="41.91" y1="2.54" x2="15.24" y2="2.54" width="0" layer="19" extent="1-1"/>
+<wire x1="49.53" y1="3.81" x2="41.91" y2="2.54" width="0" layer="19" extent="1-1"/>
+<wire x1="53.34" y1="3.81" x2="49.53" y2="3.81" width="0" layer="19" extent="1-1"/>
+<wire x1="57.15" y1="3.81" x2="53.34" y2="3.81" width="0" layer="19" extent="1-1"/>
+<wire x1="60.96" y1="3.81" x2="57.15" y2="3.81" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="AGND">
 <contactref element="U$1" pad="AGND"/>
@@ -2352,14 +2371,32 @@ design rules under a new name.</description>
 </signal>
 <signal name="GPS_FIX">
 <contactref element="U2" pad="FIX"/>
-<contactref element="U$1" pad="4"/>
 <wire x1="62.23" y1="44.45" x2="62.23" y2="25.4" width="0.1524" layer="16"/>
 <via x="62.23" y="25.4" extent="1-16" drill="0.35"/>
 <wire x1="62.23" y1="25.4" x2="45.72" y2="25.4" width="0.1524" layer="1"/>
 <via x="45.72" y="25.4" extent="1-16" drill="0.35"/>
 <wire x1="45.72" y1="25.4" x2="45.72" y2="15.24" width="0.1524" layer="16"/>
 <via x="45.72" y="15.24" extent="1-16" drill="0.35"/>
-<wire x1="45.72" y1="15.24" x2="41.91" y2="15.24" width="0.1524" layer="1"/>
+<contactref element="U$1" pad="2"/>
+<wire x1="41.91" y1="10.16" x2="45.72" y2="15.24" width="0" layer="19" extent="16-16"/>
+</signal>
+<signal name="RADIO_INT">
+<contactref element="U5" pad="14"/>
+<contactref element="U$1" pad="16/A2"/>
+<wire x1="26.67" y1="27.94" x2="37.719" y2="27.94" width="0.1524" layer="1"/>
+<wire x1="37.719" y1="27.94" x2="37.719" y2="28.067" width="0.1524" layer="1"/>
+<via x="37.719" y="28.067" extent="1-16" drill="0.35"/>
+<wire x1="37.719" y1="28.067" x2="38.1" y2="28.448" width="0.1524" layer="16"/>
+<wire x1="38.1" y1="28.448" x2="38.1" y2="52.451" width="0.1524" layer="16"/>
+<wire x1="41.99" y1="52.53" x2="38.179" y2="52.53" width="0.1524" layer="1"/>
+<wire x1="38.179" y1="52.53" x2="38.1" y2="52.451" width="0.1524" layer="1"/>
+<via x="38.1" y="52.451" extent="1-16" drill="0.35"/>
+</signal>
+<signal name="SERVO3">
+<contactref element="U$1" pad="3"/>
+</signal>
+<signal name="RECVR3">
+<contactref element="U$1" pad="4"/>
 </signal>
 </signals>
 <mfgpreviewcolors>
