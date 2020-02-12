@@ -23,11 +23,11 @@ Supported Platforms:
 
 // Optimally, these defines would be passed as compiler options, but Arduino
 // doesn't give us a great way to do that.
-#define MPU9250
+#define MPU9250_define
 #define AK8963_SECONDARY
 #define COMPASS_ENABLED
 
-// Include the Invensense MPU9250 driver and DMP keys:
+// Include the Invensense MPU9250_define driver and DMP keys:
 extern "C" {
 #include "util/inv_mpu.h"
 #include "util/inv_mpu_dmp_motion_driver.h"

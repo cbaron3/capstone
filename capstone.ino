@@ -6,7 +6,7 @@
 // IMU functionality based on the MPU9250
 #include "IMU.hpp"
 IMU* imu;
-imu = new MPU9250_AHRS();
+
 
 // GPS functionalty based on Adafruit GPS using AdafruitGPS interrupt library
 #include "GPS.hpp"
@@ -70,6 +70,8 @@ volatile bool new_msg = false;
 void thread_radio() {
   // Wait so thread does not start right away
   delay(THREAD_DELAY_MS);
+
+  imu = new MPU9250_AHRS();
 
   // Message handler for building a response
   aero::Message message_handler;

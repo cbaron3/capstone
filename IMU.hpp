@@ -1,8 +1,10 @@
 #pragma once
 
+
 #include "src/SparkFun_MPU-9250-DMP_Arduino_Library/SparkFunMPU9250-DMP.h"
 #include "src/uNavAHRS/uNavAHRS.h"
 #include "src/EWMA/Ewma.h"
+#include <MPU9250.h>
 #include "LEDS.hpp"
 #include <EEPROM.h>
 #include <Arduino.h>
@@ -75,25 +77,25 @@ public:
 
         // load and set accel and mag bias and scale
         // factors from CalibrateMPU9250.ino 
-        for (size_t i=0; i < sizeof(EepromBuffer); i++) {
-        EepromBuffer[i] = EEPROM.read(i);
+        for (size_t i=0; i < sizeof(m_eeprom_buf); i++) {
+          m_eeprom_buf[i] = EEPROM.read(i);
         }
 
         float axb, axs, ayb, ays, azb, azs;
         float hxb, hxs, hyb, hys, hzb, hzs;
 
-        memcpy(&axb,EepromBuffer+0,4);
-        memcpy(&axs,EepromBuffer+4,4);
-        memcpy(&ayb,EepromBuffer+8,4);
-        memcpy(&ays,EepromBuffer+12,4);
-        memcpy(&azb,EepromBuffer+16,4);
-        memcpy(&azs,EepromBuffer+20,4);
-        memcpy(&hxb,EepromBuffer+24,4);
-        memcpy(&hxs,EepromBuffer+28,4);
-        memcpy(&hyb,EepromBuffer+32,4);
-        memcpy(&hys,EepromBuffer+36,4);
-        memcpy(&hzb,EepromBuffer+40,4);
-        memcpy(&hzs,EepromBuffer+44,4);
+        memcpy(&axb,m_eeprom_buf+0,4);
+        memcpy(&axs,m_eeprom_buf+4,4);
+        memcpy(&ayb,m_eeprom_buf+8,4);
+        memcpy(&ays,m_eeprom_buf+12,4);
+        memcpy(&azb,m_eeprom_buf+16,4);
+        memcpy(&azs,m_eeprom_buf+20,4);
+        memcpy(&hxb,m_eeprom_buf+24,4);
+        memcpy(&hxs,m_eeprom_buf+28,4);
+        memcpy(&hyb,m_eeprom_buf+32,4);
+        memcpy(&hys,m_eeprom_buf+36,4);
+        memcpy(&hzb,m_eeprom_buf+40,4);
+        memcpy(&hzs,m_eeprom_buf+44,4);
     
         imu.setAccelCalX(axb,axs);
         imu.setAccelCalY(ayb,ays);
@@ -121,9 +123,9 @@ public:
                     imu.getGyroX_rads(), imu.getGyroY_rads(), imu.getGyroZ_rads(),
                     imu.getMagX_uT(), imu.getMagY_uT(), imu.getMagZ_uT());
 
-        data.pitch = filter.getPitch_rad()*RAD_TO_DEG;
-        data.roll =  filter.getRoll_rad()*RAD_TO_DEG;
-        data.yaw =   filter.getYaw_rad()*RAD_TO_DEG;
+        m_data.pitch = filter.getPitch_rad()*RAD_TO_DEG;
+        m_data.roll =  filter.getRoll_rad()*RAD_TO_DEG;
+        m_data.yaw =   filter.getYaw_rad()*RAD_TO_DEG;
     }
 
     void calibrate(Sensor sensor) override {
@@ -139,12 +141,12 @@ public:
 
 
 private:
-    uint8_t m_eeprom_buf[48];
-    uint8_t mag_offset = 48;
-    MPU9250 mpu9250(Wire, 0x68);
+    int m_eeprom_buf[48] = {};
+    int mag_offset = 48;
+    MPU9250 imu{Wire, 0x68};
     uNavAHRS filter;
 
-    inline void calibrate_accel() {
+    void calibrate_accel() {
       DEBUG_PRINTLN("Starting Accelerometer Calibration");
       for(int j = 0; j < 5; j++) { LEDS::flash(500); }
       delay(2500);
@@ -158,26 +160,26 @@ private:
 
       float value;
       value = imu.getAccelBiasX_mss();
-      memcpy(EepromBuffer,&value,4);
+      memcpy(m_eeprom_buf,&value,4);
       value = imu.getAccelScaleFactorX();
-      memcpy(EepromBuffer+4,&value,4);
+      memcpy(m_eeprom_buf+4,&value,4);
       value = imu.getAccelBiasY_mss();
-      memcpy(EepromBuffer+8,&value,4);
+      memcpy(m_eeprom_buf+8,&value,4);
       value = imu.getAccelScaleFactorY();
-      memcpy(EepromBuffer+12,&value,4);
+      memcpy(m_eeprom_buf+12,&value,4);
       value = imu.getAccelBiasZ_mss();
-      memcpy(EepromBuffer+16,&value,4);
+      memcpy(m_eeprom_buf+16,&value,4);
       value = imu.getAccelScaleFactorZ();
-      memcpy(EepromBuffer+20,&value,4);
+      memcpy(m_eeprom_buf+20,&value,4);
 
-      for (size_t i=0; i < MAG_OFFSET; i++) {
-        EEPROM.write(i,EepromBuffer[i]);
+      for (size_t i=0; i < mag_offset; i++) {
+        EEPROM.write(i,m_eeprom_buf[i]);
       }
       
       DEBUG_PRINTLN("Accelerometer Calibration Done");
     }
     
-    inline void calibrate_gyro() {
+    void calibrate_gyro() {
       DEBUG_PRINTLN("Starting Gyroscope Calibration");
       
       // Do nothing, dont need to pass anything in
@@ -203,20 +205,20 @@ private:
 
       float value;
       value = imu.getMagBiasX_uT();
-      memcpy(EepromBuffer+24,&value,4);
+      memcpy(m_eeprom_buf+24,&value,4);
       value = imu.getMagScaleFactorX();
-      memcpy(EepromBuffer+28,&value,4);
+      memcpy(m_eeprom_buf+28,&value,4);
       value = imu.getMagBiasY_uT();
-      memcpy(EepromBuffer+32,&value,4);
+      memcpy(m_eeprom_buf+32,&value,4);
       value = imu.getMagScaleFactorY();
-      memcpy(EepromBuffer+36,&value,4);
+      memcpy(m_eeprom_buf+36,&value,4);
       value = imu.getMagBiasZ_uT();
-      memcpy(EepromBuffer+40,&value,4);
+      memcpy(m_eeprom_buf+40,&value,4);
       value = imu.getMagScaleFactorZ();
-      memcpy(EepromBuffer+44,&value,4);
+      memcpy(m_eeprom_buf+44,&value,4);
   
-      for (size_t i=MAG_OFFSET; i < sizeof(EepromBuffer); i++) {
-        EEPROM.write(i,EepromBuffer[i]);
+      for (size_t i=mag_offset; i < sizeof(m_eeprom_buf); i++) {
+        EEPROM.write(i,m_eeprom_buf[i]);
       }
 
       DEBUG_PRINTLN("Magnometer Calibration Done");
@@ -293,7 +295,7 @@ private:
     const float ROLL_FILTER_COEF = 0.8f;
     const float PITCH_FILTER_COEF = 0.8f;
 
-    Ewma yaw_filter(YAW_FILTER_COEF);
-    Ewma roll_filter(ROLL_FILTER_COEF);
-    Ewma pitch_filter(PITCH_FILTER_COEF);
+    Ewma yaw_filter{YAW_FILTER_COEF};
+    Ewma roll_filter{ROLL_FILTER_COEF};
+    Ewma pitch_filter{PITCH_FILTER_COEF};
 };

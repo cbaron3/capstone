@@ -15,7 +15,7 @@
  *                  MPU6050
  *                  MPU6500
  *                  MPU9150 (or MPU6050 w/ AK8975 on the auxiliary bus)
- *                  MPU9250 (or MPU6500 w/ AK8963 on the auxiliary bus)
+ *                  MPU9250_define (or MPU6500 w/ AK8963 on the auxiliary bus)
  */
 #include <stdio.h>
 #include <stdint.h>
@@ -37,7 +37,7 @@
  * min(int a, int b)
  */
 #include <Arduino.h>
-#define MPU9250
+#define MPU9250_define
 #include "arduino_mpu9250_i2c.h"
 #include "arduino_mpu9250_clk.h"
 #define i2c_write(a, b, c, d) arduino_i2c_write(a, b, c, d)
@@ -51,7 +51,7 @@ static inline int reg_int_cb(struct int_param_s *int_param)
 	
 }
 
-#if !defined MPU6050 && !defined MPU9150 && !defined MPU6500 && !defined MPU9250
+#if !defined MPU6050 && !defined MPU9150 && !defined MPU6500 && !defined MPU9250_define
 #error  Which gyro are you using? Define MPUxxxx in your compiler options.
 #endif
 
@@ -61,7 +61,7 @@ static inline int reg_int_cb(struct int_param_s *int_param)
  * #define MPU6050
  * #define AK8975_SECONDARY
  *
- * #define MPU9250
+ * #define MPU9250_define
  * is equivalent to..
  * #define MPU6500
  * #define AK8963_SECONDARY
@@ -75,12 +75,12 @@ static inline int reg_int_cb(struct int_param_s *int_param)
 #elif !defined AK8975_SECONDARY /* #if defined AK8963_SECONDARY */
 #define AK8975_SECONDARY
 #endif                          /* #if defined AK8963_SECONDARY */
-#elif defined MPU9250           /* #if defined MPU9150 */
+#elif defined MPU9250_define           /* #if defined MPU9150 */
 #ifndef MPU6500
 #define MPU6500
 #endif                          /* #ifndef MPU6500 */
 #if defined AK8975_SECONDARY
-#error "MPU9250 and AK8975_SECONDARY cannot both be defined."
+#error "MPU9250_define and AK8975_SECONDARY cannot both be defined."
 #elif !defined AK8963_SECONDARY /* #if defined AK8975_SECONDARY */
 #define AK8963_SECONDARY
 #endif                          /* #if defined AK8975_SECONDARY */
@@ -1980,7 +1980,7 @@ static int compass_self_test(void)
     data = (short)(tmp[5] << 8) | tmp[4];
     if ((data > -300) || (data < -1000))
         result |= 0x04;
-#elif defined MPU9250
+#elif defined MPU9250_define
     data = (short)(tmp[1] << 8) | tmp[0];
     if ((data > 200) || (data < -200))  
         result |= 0x01;
@@ -2468,7 +2468,7 @@ static int get_st_6500_biases(long *gyro, long *accel, unsigned char hw_test, in
     return 0;
 }
 /**
- *  @brief      Trigger gyro/accel/compass self-test for MPU6500/MPU9250
+ *  @brief      Trigger gyro/accel/compass self-test for MPU6500/MPU9250_define
  *  On success/error, the self-test returns a mask representing the sensor(s)
  *  that failed. For each bit, a one (1) represents a "pass" case; conversely,
  *  a zero (0) indicates a failure.
@@ -3219,4 +3219,3 @@ lp_int_restore:
 /**
  *  @}
  */
-

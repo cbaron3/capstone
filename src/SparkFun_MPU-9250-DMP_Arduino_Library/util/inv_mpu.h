@@ -15,7 +15,7 @@
  *                  MPU6050
  *                  MPU6500
  *                  MPU9150 (or MPU6050 w/ AK8975 on the auxiliary bus)
- *                  MPU9250 (or MPU6500 w/ AK8963 on the auxiliary bus)
+ *                  MPU9250_define (or MPU6500 w/ AK8963 on the auxiliary bus)
  */
 
 #ifndef _INV_MPU_H_
@@ -132,4 +132,3 @@ int mpu_run_6500_self_test(long *gyro, long *accel, unsigned char debug);
 int mpu_register_tap_cb(void (*func)(unsigned char, unsigned char));
 
 #endif  /* #ifndef _INV_MPU_H_ */
-
