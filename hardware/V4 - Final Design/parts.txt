@@ -1,0 +1,5 @@
+IMU - (LSM9DS1TR) https://www.digikey.ca/product-detail/en/stmicroelectronics/LSM9DS1TR/497-14946-1-ND/4988079
+Radio - (RFM95W) https://www.digikey.ca/product-detail/en/rf-solutions/RFM95W-915S2/RFM95W-915S2-ND/6564923
+Baro - (BMP388) https://www.digikey.ca/product-detail/en/bosch-sensortec/BMP388/828-1079-1-ND/8322640
+GPS - (Adafruit Ultimate GPS) https://www.adafruit.com/product/790
+uC - Teensy 3.2
