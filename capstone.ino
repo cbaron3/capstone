@@ -70,8 +70,7 @@ volatile bool new_msg = false;
 void thread_radio() {
   // Wait so thread does not start right away
   delay(THREAD_DELAY_MS);
-
-  imu = new MPU9250_AHRS();
+  DEBUG_PRINTLN("Radio thread started");
 
   // Message handler for building a response
   aero::Message message_handler;
@@ -361,6 +360,8 @@ void setup() {
   // Initialize serial
   DEBUG_START(115200);
 
+  imu = new MPU9250_AHRS();
+
   // Initialize sensors
   imu->init();
   GPS::init(adafruit_gps);
@@ -433,7 +434,7 @@ void loop() {
 
   // For some reason, cannot put filter in thread
   if(new_imu == true) {
-    // update_controller();
+    update_controller();
     new_imu = false;
   }
 }
