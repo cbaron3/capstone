@@ -3413,26 +3413,6 @@ design rules under a new name.</description>
 <attribute name="POPULARITY" value="11" x="-25.4" y="-86.36" size="1.778" layer="27" display="off"/>
 <attribute name="VALUE" x="-26.67" y="-84.836" size="1.27" layer="27" ratio="10"/>
 </element>
-<element name="TP8" library="testpad" library_urn="urn:adsk.eagle:library:385" package="B2,54" package3d_urn="urn:adsk.eagle:package:27948/1" value="PTR1B2,54" x="-25.4" y="-135.89" smashed="yes">
-<attribute name="NAME" x="-26.67" y="-134.239" size="1.27" layer="25" ratio="10"/>
-<attribute name="TP_SIGNAL_NAME" value="" x="-25.4" y="-135.89" size="1.778" layer="27" display="off"/>
-<attribute name="VALUE" x="-26.67" y="-137.287" size="0.0254" layer="27"/>
-</element>
-<element name="TP9" library="testpad" library_urn="urn:adsk.eagle:library:385" package="B2,54" package3d_urn="urn:adsk.eagle:package:27948/1" value="PTR1B2,54" x="-25.4" y="-142.24" smashed="yes">
-<attribute name="NAME" x="-26.67" y="-140.589" size="1.27" layer="25" ratio="10"/>
-<attribute name="TP_SIGNAL_NAME" value="" x="-25.4" y="-142.24" size="1.778" layer="27" display="off"/>
-<attribute name="VALUE" x="-26.67" y="-143.637" size="0.0254" layer="27"/>
-</element>
-<element name="TP10" library="testpad" library_urn="urn:adsk.eagle:library:385" package="B2,54" package3d_urn="urn:adsk.eagle:package:27948/1" value="PTR1B2,54" x="-25.4" y="-148.59" smashed="yes">
-<attribute name="NAME" x="-26.67" y="-146.939" size="1.27" layer="25" ratio="10"/>
-<attribute name="TP_SIGNAL_NAME" value="" x="-25.4" y="-148.59" size="1.778" layer="27" display="off"/>
-<attribute name="VALUE" x="-26.67" y="-149.987" size="0.0254" layer="27"/>
-</element>
-<element name="TP11" library="testpad" library_urn="urn:adsk.eagle:library:385" package="B2,54" package3d_urn="urn:adsk.eagle:package:27948/1" value="PTR1B2,54" x="-25.4" y="-154.94" smashed="yes">
-<attribute name="NAME" x="-26.67" y="-153.289" size="1.27" layer="25" ratio="10"/>
-<attribute name="TP_SIGNAL_NAME" value="" x="-25.4" y="-154.94" size="1.778" layer="27" display="off"/>
-<attribute name="VALUE" x="-26.67" y="-156.337" size="0.0254" layer="27"/>
-</element>
 <element name="TP12" library="testpad" library_urn="urn:adsk.eagle:library:385" package="B2,54" package3d_urn="urn:adsk.eagle:package:27948/1" value="PTR1B2,54" x="-25.4" y="-161.29" smashed="yes">
 <attribute name="NAME" x="-26.67" y="-159.639" size="1.27" layer="25" ratio="10"/>
 <attribute name="TP_SIGNAL_NAME" value="" x="-25.4" y="-161.29" size="1.778" layer="27" display="off"/>
@@ -3502,6 +3482,16 @@ design rules under a new name.</description>
 <attribute name="NAME" x="-26.924" y="-261.112" size="1.27" layer="25" ratio="10"/>
 <attribute name="TP_SIGNAL_NAME" value="" x="-25.4" y="-262.89" size="1.778" layer="27" display="off"/>
 <attribute name="VALUE" x="-25.4" y="-262.89" size="0.0254" layer="27"/>
+</element>
+<element name="TP8" library="testpad" library_urn="urn:adsk.eagle:library:385" package="P1-20" package3d_urn="urn:adsk.eagle:package:27950/1" value="PTR1PAD1-20" x="-25.4" y="-269.24" smashed="yes">
+<attribute name="NAME" x="-26.924" y="-267.462" size="1.27" layer="25" ratio="10"/>
+<attribute name="TP_SIGNAL_NAME" value="" x="-25.4" y="-269.24" size="1.778" layer="27" display="off"/>
+<attribute name="VALUE" x="-25.4" y="-269.24" size="0.0254" layer="27"/>
+</element>
+<element name="TP9" library="testpad" library_urn="urn:adsk.eagle:library:385" package="P1-20" package3d_urn="urn:adsk.eagle:package:27950/1" value="PTR1PAD1-20" x="-25.4" y="-275.59" smashed="yes">
+<attribute name="NAME" x="-26.924" y="-273.812" size="1.27" layer="25" ratio="10"/>
+<attribute name="TP_SIGNAL_NAME" value="" x="-25.4" y="-275.59" size="1.778" layer="27" display="off"/>
+<attribute name="VALUE" x="-25.4" y="-275.59" size="0.0254" layer="27"/>
 </element>
 </elements>
 <signals>
@@ -3725,16 +3715,14 @@ design rules under a new name.</description>
 <wire x1="25.4" y1="22.86" x2="26.67" y2="21.59" width="0.1524" layer="1"/>
 <wire x1="26.67" y1="21.59" x2="36.83" y2="21.59" width="0.1524" layer="1"/>
 <contactref element="C3" pad="1"/>
-<contactref element="TP8" pad="TP"/>
-<contactref element="TP9" pad="TP"/>
-<contactref element="TP11" pad="TP"/>
 <contactref element="TP18" pad="TP"/>
 <contactref element="TP4" pad="TP"/>
-<wire x1="-25.4" y1="-154.94" x2="-25.4" y2="-199.39" width="0" layer="19" extent="1-1"/>
-<wire x1="-25.4" y1="-142.24" x2="-25.4" y2="-154.94" width="0" layer="19" extent="1-1"/>
-<wire x1="-25.4" y1="-135.89" x2="-25.4" y2="-142.24" width="0" layer="19" extent="1-1"/>
+<contactref element="TP8" pad="TP"/>
+<contactref element="TP9" pad="TP"/>
 <wire x1="-25.4" y1="-243.84" x2="-25.4" y2="-199.39" width="0" layer="19" extent="1-1"/>
-<wire x1="-26.25" y1="-78.74" x2="-25.4" y2="-135.89" width="0" layer="19" extent="1-1"/>
+<wire x1="-25.4" y1="-269.24" x2="-25.4" y2="-243.84" width="0" layer="19" extent="1-1"/>
+<wire x1="-25.4" y1="-275.59" x2="-25.4" y2="-269.24" width="0" layer="19" extent="1-1"/>
+<wire x1="-26.25" y1="-78.74" x2="-25.4" y2="-199.39" width="0" layer="19" extent="1-1"/>
 <wire x1="-26.25" y1="-73.66" x2="-26.25" y2="-78.74" width="0" layer="19" extent="1-1"/>
 <wire x1="-26.25" y1="-68.58" x2="-26.25" y2="-73.66" width="0" layer="19" extent="1-1"/>
 <wire x1="-9.74" y1="-57.15" x2="-26.25" y2="-68.58" width="0" layer="19" extent="1-1"/>
@@ -3895,9 +3883,7 @@ design rules under a new name.</description>
 <signal name="VBACKUP">
 <contactref element="U4" pad="P$4"/>
 <contactref element="G1" pad="+"/>
-<contactref element="TP10" pad="TP"/>
-<wire x1="-20.32" y1="-56.9055" x2="-25.4" y2="-148.59" width="0" layer="19" extent="1-1"/>
-<wire x1="54.32" y1="43.06" x2="-20.32" y2="-56.9055" width="0" layer="19" extent="1-1"/>
+<wire x1="-20.32" y1="-56.9055" x2="54.32" y2="43.06" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="GPS_1PPS">
 <contactref element="U4" pad="P$13"/>
