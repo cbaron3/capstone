@@ -11,7 +11,7 @@
 using Pin = unsigned int;
 
 enum mode_type {MODE_MANUAL = 0, MODE_AUTO = 1};
-static constexpr mode_type DEFAULT_MODE = MODE_MANUAL;
+static constexpr mode_type DEFAULT_MODE = MODE_AUTO;
 
 
 #define  DEBUG
@@ -56,7 +56,7 @@ static constexpr BOOT_MODE MODE = BOOT_MODE::LED_TEST_RANDOM;
 
 /* PID */
 static constexpr double ROLL_KP = 1.0f, ROLL_KI = 0.00f, ROLL_KD = 0.0f;
-static constexpr double PITCH_KP = 10.0f, PITCH_KI = 1.00f, PITCH_KD = 1.0f;
+static constexpr double PITCH_KP = 1.0f, PITCH_KI = 0.00f, PITCH_KD = 0.0f;
 static constexpr double YAW_KP = 10.0f, YAW_KI = 1.00f, YAW_KD = 1.0f;
 
 static constexpr double DEFAULT_ROLL_SETPOINT = 0;
@@ -136,6 +136,17 @@ static constexpr aero::def::ID THIS_DEVICE = aero::def::ID::G1;
 template <class X, class M, class N, class O, class Q>
 inline X map_generic(X x, M in_min, N in_max, O out_min, Q out_max){
   return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
+
+template <class A, class B, class C>
+inline A constrain_generic(A a, B in_min, C in_max) {
+  if(a <= in_max && a >= in_min) {
+    return a;
+  } else if(a >= in_max) {
+    return in_max;
+  } else {
+    return in_min;
+  }
 }
 
 /* GPS */

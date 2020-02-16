@@ -46,6 +46,8 @@ namespace GPS {
   };
   
   inline void init(Adafruit_GPS& GPS) {
+    DEBUG_PRINTLN("Init GPS...");
+    
     // 9600 NMEA is the default baud rate this module but note that some use 4800
     GPS.begin(9600);
     

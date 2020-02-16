@@ -3,10 +3,16 @@
 // System configuration including pins, debugging, and system mode
 #include "Config.hpp"
 
+#include "src/EWMA/Ewma.h"
+Ewma roll_filter(0.8);
+Ewma pitch_filter(0.8);
+Ewma yaw_filter(0.8);
+
 // IMU functionality based on the MPU9250
 #include "IMU.hpp"
-IMU* imu;
+uNavAHRS filter;
 
+MPU9250 mpu9250{Wire, 0x68};
 
 // GPS functionalty based on Adafruit GPS using AdafruitGPS interrupt library
 #include "GPS.hpp"
@@ -148,6 +154,7 @@ volatile bool new_baro = false;
 void thread_i2c() {
   // Wait so thread does not start right away
   delay(THREAD_DELAY_MS);
+  DEBUG_PRINTLN("I2C started");
 
   unsigned long prev_imu = 0, curr_imu = 0;
 
@@ -160,12 +167,14 @@ void thread_i2c() {
       // Keep update rate for sensors at 20 Hz
       curr_imu = millis();
       if(curr_imu - prev_imu >= IMU_SAMPLE_INTERVAL_MS) {
+        DEBUG_PRINTLN("Radio thread started");
         prev_imu = curr_imu;
 
         // Read data
-        imu->update();
+        imu_data = IMU::read_data(mpu9250);
         
         new_imu = true;
+        DEBUG_PRINTLN("Radio thread started");
       }
     } 
     
@@ -335,35 +344,47 @@ void parse_cmds(void) {
  */
 void update_controller(void) {
     
+    filter.update(imu_data.gx,imu_data.gy, imu_data.gz, 
+                  imu_data.ax, imu_data.ay, imu_data.az,
+                  imu_data.mx, imu_data.my, imu_data.mz);
+
+    new_pitch = filter.getPitch_rad()*RAD_TO_DEG;
+    new_roll =  filter.getRoll_rad()*RAD_TO_DEG;
+    new_yaw =   filter.getYaw_rad()*RAD_TO_DEG;
     
     // Set PID inputs
-    CONTROLLER::pitch_input = imu->get_pitch();
-    CONTROLLER::roll_input  = imu->get_roll();
-    CONTROLLER::yaw_input   = imu->get_yaw();
+    CONTROLLER::pitch_input = new_pitch;
+    CONTROLLER::roll_input  = new_roll;
+    CONTROLLER::yaw_input   = new_yaw;
 
     // TODO: Add moving average to the roll, pitch, and yaw values
     DEBUG_PRINT("PID Input: ");
     DEBUG_PRINT("\tRoll: "); DEBUG_PRINT(CONTROLLER::roll_input);
     DEBUG_PRINT("\tPitch: "); DEBUG_PRINT(CONTROLLER::pitch_input);
-    DEBUG_PRINT("\tYaw: "); DEBUG_PRINT(CONTROLLER::yaw_input);
+    DEBUG_PRINT("\tYaw: "); DEBUG_PRINTLN(CONTROLLER::yaw_input);
 
     // Update controller values
     CONTROLLER::update(roll_control, pitch_control, yaw_control);
+
+    //CONTROLLER::roll_output = roll_filter.filter(CONTROLLER::roll_output);
+    //CONTROLLER::pitch_output = pitch_filter.filter(CONTROLLER::pitch_output);
+    //CONTROLLER::yaw_output = yaw_filter.filter(CONTROLLER::yaw_output);
     
     DEBUG_PRINT("PID Output: ");
     DEBUG_PRINT("\tRoll: "); DEBUG_PRINT(CONTROLLER::roll_output);
     DEBUG_PRINT("\tPitch: "); DEBUG_PRINT(CONTROLLER::pitch_output);
-    DEBUG_PRINT("\tYaw: "); DEBUG_PRINT(CONTROLLER::yaw_output);
+    DEBUG_PRINT("\tYaw: "); DEBUG_PRINTLN(CONTROLLER::yaw_output);
+
+    
+    
 }
 
 void setup() {
   // Initialize serial
   DEBUG_START(115200);
-
-  imu = new MPU9250_AHRS();
-
+  
   // Initialize sensors
-  imu->init();
+  IMU::init(mpu9250);
   GPS::init(adafruit_gps);
   BARO::init(mpl3115);
 
@@ -378,9 +399,9 @@ void setup() {
 
   // Call calibration routines if necessary
   // NOTE: Accel and Mag save results in EEPROM
-  if(CALIBRATE_ACCEL) imu->calibrate(IMU::ACCEL);
-  if(CALIBRATE_GYRO)  imu->calibrate(IMU::GYRO);
-  if(CALIBRATE_MAG)   imu->calibrate(IMU::MAG);
+  if(CALIBRATE_ACCEL) IMU::calibrate(mpu9250, IMU::ACCEL);
+  if(CALIBRATE_GYRO)  IMU::calibrate(mpu9250, IMU::GYRO);
+  if(CALIBRATE_MAG)   IMU::calibrate(mpu9250, IMU::MAG);
   if(CALIBRATE_BARO)  BARO::calibrate(mpl3115, ALTITUDE_BIAS);
 
   CONTROLLER::init(roll_control, pitch_control, yaw_control);
@@ -390,7 +411,7 @@ void setup() {
   LEDS::on(POWER_LED);
 
   // Initialize threads; thread time slice at 1 ms
-  threads.setMicroTimer(1);
+  threads.setMicroTimer(10);
 
   // Always keep radio, gps, and i2c thread alive
   THREADS::ids[RADIO_ID]  = threads.addThread(thread_radio);
