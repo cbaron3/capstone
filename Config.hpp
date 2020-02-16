@@ -11,10 +11,10 @@
 using Pin = unsigned int;
 
 enum mode_type {MODE_MANUAL = 0, MODE_AUTO = 1};
-static constexpr mode_type DEFAULT_MODE = MODE_AUTO;
+static constexpr mode_type DEFAULT_MODE = MODE_MANUAL;
 
 
-#define  DEBUG
+//#define  DEBUG
 #define  TEST_TRAINER
 
 #ifdef DEBUG
@@ -34,8 +34,8 @@ static constexpr mode_type DEFAULT_MODE = MODE_AUTO;
     static constexpr unsigned long LEFT_ELEVON_MS_OFFSET = 0;
     static constexpr unsigned long RIGHT_ELEVON_MS_OFFSET = 0;
 #elif defined(TEST_TRAINER)
-    static constexpr unsigned long LEFT_ELEVON_MS_OFFSET = -35;
-    static constexpr unsigned long RIGHT_ELEVON_MS_OFFSET = -35;
+    static constexpr unsigned long LEFT_ELEVON_MS_OFFSET = 40;   // Pitch
+    static constexpr unsigned long RIGHT_ELEVON_MS_OFFSET = 50; // Roll
 #else 
     static constexpr unsigned long LEFT_ELEVON_MS_OFFSET = 0;
     static constexpr unsigned long RIGHT_ELEVON_MS_OFFSET = 0;
@@ -55,9 +55,9 @@ enum class BOOT_MODE {LED_TEST, LED_TEST_RANDOM};
 static constexpr BOOT_MODE MODE = BOOT_MODE::LED_TEST_RANDOM;
 
 /* PID */
-static constexpr double ROLL_KP = 1.0f, ROLL_KI = 0.00f, ROLL_KD = 0.0f;
-static constexpr double PITCH_KP = 1.0f, PITCH_KI = 0.00f, PITCH_KD = 0.0f;
-static constexpr double YAW_KP = 10.0f, YAW_KI = 1.00f, YAW_KD = 1.0f;
+static constexpr double ROLL_KP = 1.5f, ROLL_KI = 0.00f, ROLL_KD = 0.0f;
+static constexpr double PITCH_KP = 1.5f, PITCH_KI = 0.00f, PITCH_KD = 0.0f;
+static constexpr double YAW_KP = 1.0f, YAW_KI = 0.00f, YAW_KD = 0.0f;
 
 static constexpr double DEFAULT_ROLL_SETPOINT = 0;
 static constexpr double ROLL_MIN_LIMIT = -90;
