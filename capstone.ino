@@ -4,9 +4,12 @@
 #include "Config.hpp"
 
 #include "src/EWMA/Ewma.h"
-Ewma roll_filter(0.8);
-Ewma pitch_filter(0.8);
-Ewma yaw_filter(0.8);
+Ewma roll_filter(1.0);
+Ewma pitch_filter(1.0);
+Ewma yaw_filter(1.0);
+
+Ewma left_filter(0.9);
+Ewma right_filter(0.9);
 
 // IMU functionality based on the MPU9250
 #include "IMU.hpp"
@@ -167,14 +170,14 @@ void thread_i2c() {
       // Keep update rate for sensors at 20 Hz
       curr_imu = millis();
       if(curr_imu - prev_imu >= IMU_SAMPLE_INTERVAL_MS) {
-        DEBUG_PRINTLN("Radio thread started");
+        //DEBUG_PRINTLN("Radio thread started");
         prev_imu = curr_imu;
 
         // Read data
         imu_data = IMU::read_data(mpu9250);
         
         new_imu = true;
-        DEBUG_PRINTLN("Radio thread started");
+        //DEBUG_PRINTLN("Radio thread started");
       }
     } 
     
@@ -220,38 +223,59 @@ void thread_manual() {
 /***********************************************/
 /* Thread for automatic control; stabilization */ 
 /***********************************************/
-
+volatile bool updated = false;
+float left_output = 90.0f, right_output = 90.0f;
 void thread_auto() {
   // Wait so thread does not start right away
   delay(THREAD_DELAY_MS);
 
   unsigned long curr = 0, prev = 0;
 
-  float left_output = 0.0f, right_output = 0.0f;
+  
   
   while(true) {
     curr = millis();
-    if(curr - prev >= AUTO_INTERVAL_MS) {
+    if(curr - prev >= AUTO_INTERVAL_MS && updated == false) {
       prev = curr;
-
+  
+      float left_target, right_target;
       // Apply mixing if needed
       #if defined(TEST_TRAINER)
-        left_output = (-1*CONTROLLER::pitch_output) + 90.0f;
-        right_output = (-1*CONTROLLER::roll_output) + 90.0f;
+        left_target = (-1*CONTROLLER::pitch_output) + 90.0f;
+        left_target = left_filter.filter(left_target);
+        right_target = (-1*CONTROLLER::roll_output) + 90.0f;
+        right_target = right_filter.filter(right_target);
       #else
-        leftOutput = ((CONTROLLER::roll_output + CONTROLLER::pitch_output) / 2.0f) + 90.0f;
-        rightOutput = ((CONTROLLER::roll_output - CONTROLLER::pitch_output) / 2.0f) + 90.0f;
+        left_target = ((CONTROLLER::roll_output + CONTROLLER::pitch_output) / 2.0f) + 90.0f;
+        right_target = ((CONTROLLER::roll_output - CONTROLLER::pitch_output) / 2.0f) + 90.0f;
       #endif
+
+      if(left_target > left_output) {
+        left_output += 2.0f;
+      } else if (left_target < left_output) {
+        left_output -= 2.0f;
+      }
+
+      if(right_target > right_output) {
+        right_output += 2.0f;
+      } else if (right_target < right_output) {
+        right_output -= 2.0f;
+      }
+
       
+      DEBUG_PRINT("\tLeft: "); DEBUG_PRINT(left_output);
+      DEBUG_PRINT("\tRight: "); DEBUG_PRINTLN(right_output);
+    
       unsigned long left_signal = (unsigned long) map_generic(left_output, SERVO_MIN_ANGLE, SERVO_MAX_ANGLE, SERVO_MIN_MS, SERVO_MAX_MS) - LEFT_ELEVON_MS_OFFSET;
       unsigned long right_signal = (unsigned long) map_generic(right_output, SERVO_MIN_ANGLE, SERVO_MAX_ANGLE, SERVO_MIN_MS, SERVO_MAX_MS) - RIGHT_ELEVON_MS_OFFSET;
 
       left_elevon.writeMicroseconds(left_signal);
       right_elevon.writeMicroseconds(right_signal);
-
+      
+      updated = true;
     } 
     
-    threads.yield();
+    // threads.yield();
 
   }  
 }
@@ -343,40 +367,43 @@ void parse_cmds(void) {
  * @details Results in a flag being set that lets the auto thread know that new data has been received
  */
 void update_controller(void) {
+    if(updated == true) {
     
-    filter.update(imu_data.gx,imu_data.gy, imu_data.gz, 
-                  imu_data.ax, imu_data.ay, imu_data.az,
-                  imu_data.mx, imu_data.my, imu_data.mz);
+      filter.update(imu_data.gx,imu_data.gy, imu_data.gz, 
+                    imu_data.ax, imu_data.ay, imu_data.az,
+                    imu_data.mx, imu_data.my, imu_data.mz);
+  
+      new_pitch = filter.getPitch_rad()*RAD_TO_DEG;
+      new_roll =  filter.getRoll_rad()*RAD_TO_DEG;
+      new_yaw =   filter.getYaw_rad()*RAD_TO_DEG;
+      
+      // Set PID inputs
+      CONTROLLER::pitch_input = new_pitch;
+      CONTROLLER::roll_input  = new_roll;
+      CONTROLLER::yaw_input   = new_yaw;
+  
+      // TODO: Add moving average to the roll, pitch, and yaw values
+      DEBUG_PRINT("PID Input: ");
+      DEBUG_PRINT("\tRoll: "); DEBUG_PRINT(CONTROLLER::roll_input);
+      DEBUG_PRINT("\tPitch: "); DEBUG_PRINT(CONTROLLER::pitch_input);
+      DEBUG_PRINT("\tYaw: "); DEBUG_PRINTLN(CONTROLLER::yaw_input);
+  
+      // Update controller values
+      CONTROLLER::update(roll_control, pitch_control, yaw_control);
+  
+      CONTROLLER::roll_output = roll_filter.filter(CONTROLLER::roll_output);
+      CONTROLLER::pitch_output = pitch_filter.filter(CONTROLLER::pitch_output);
+      CONTROLLER::yaw_output = yaw_filter.filter(CONTROLLER::yaw_output);
+      
+      DEBUG_PRINT("PID Output: ");
+      DEBUG_PRINT("\tRoll: "); DEBUG_PRINT(CONTROLLER::roll_output);
+      DEBUG_PRINT("\tPitch: "); DEBUG_PRINT(CONTROLLER::pitch_output);
+      DEBUG_PRINT("\tYaw: "); DEBUG_PRINTLN(CONTROLLER::yaw_output);
 
-    new_pitch = filter.getPitch_rad()*RAD_TO_DEG;
-    new_roll =  filter.getRoll_rad()*RAD_TO_DEG;
-    new_yaw =   filter.getYaw_rad()*RAD_TO_DEG;
+      updated  = false;
+      
     
-    // Set PID inputs
-    CONTROLLER::pitch_input = new_pitch;
-    CONTROLLER::roll_input  = new_roll;
-    CONTROLLER::yaw_input   = new_yaw;
-
-    // TODO: Add moving average to the roll, pitch, and yaw values
-    DEBUG_PRINT("PID Input: ");
-    DEBUG_PRINT("\tRoll: "); DEBUG_PRINT(CONTROLLER::roll_input);
-    DEBUG_PRINT("\tPitch: "); DEBUG_PRINT(CONTROLLER::pitch_input);
-    DEBUG_PRINT("\tYaw: "); DEBUG_PRINTLN(CONTROLLER::yaw_input);
-
-    // Update controller values
-    CONTROLLER::update(roll_control, pitch_control, yaw_control);
-
-    //CONTROLLER::roll_output = roll_filter.filter(CONTROLLER::roll_output);
-    //CONTROLLER::pitch_output = pitch_filter.filter(CONTROLLER::pitch_output);
-    //CONTROLLER::yaw_output = yaw_filter.filter(CONTROLLER::yaw_output);
-    
-    DEBUG_PRINT("PID Output: ");
-    DEBUG_PRINT("\tRoll: "); DEBUG_PRINT(CONTROLLER::roll_output);
-    DEBUG_PRINT("\tPitch: "); DEBUG_PRINT(CONTROLLER::pitch_output);
-    DEBUG_PRINT("\tYaw: "); DEBUG_PRINTLN(CONTROLLER::yaw_output);
-
-    
-    
+    }
 }
 
 void setup() {
@@ -411,7 +438,7 @@ void setup() {
   LEDS::on(POWER_LED);
 
   // Initialize threads; thread time slice at 1 ms
-  threads.setMicroTimer(10);
+  threads.setMicroTimer(1);
 
   // Always keep radio, gps, and i2c thread alive
   THREADS::ids[RADIO_ID]  = threads.addThread(thread_radio);
