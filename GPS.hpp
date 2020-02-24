@@ -1,17 +1,17 @@
 #pragma once
 
 /**
- * File for functions that interface with the GPS; Adafruit GPS based on MK3339 chipset.
+ * File to encapsulate functions that interface with the GPS; Adafruit GPS based on MK3339 chipset.
  * Makes use of the Adafruit_GPS library 
  */
 
-#include "Config.hpp"
 #include <Adafruit_GPS.h>
+#include "Config.hpp"
 
 #define GPSECHO false
 
 /**
- * GPS namespace; encapsulates all related functions
+ * GPS namespace; encapsulates all related functions that use Adafruit library
  */
 namespace GPS {
 
@@ -32,7 +32,7 @@ namespace GPS {
     double lon;
   };
 
-  struct GPSData {
+  struct Data {
     // GPS timestamp, dd/mm/yy hr:min:sec:msec
     TimeStamp timestamp;
     // Coordinate information
@@ -44,10 +44,18 @@ namespace GPS {
     // Speed, altitude and course
     float speed, altitude, angle;
   };
+
+  // Anonymous namespace to protect data (make private)
+  namespace {
+    Data data;
+  }
   
+  /**
+   * @brief Initialize GPS
+   * 
+   * @param GPS gps to initialize
+   */
   inline void init(Adafruit_GPS& GPS) {
-    DEBUG_PRINTLN("Init GPS...");
-    
     // 9600 NMEA is the default baud rate this module but note that some use 4800
     GPS.begin(9600);
     
@@ -61,7 +69,15 @@ namespace GPS {
     Serial2.println(PMTK_Q_RELEASE);
   }
 
-  inline bool read_sensor(Adafruit_GPS& GPS) {
+
+  /**
+   * @brief Check if there is new data ready to be parsed
+   * 
+   * @param GPS gps object
+   * @return true if new data is available
+   * @return false if new data is not available
+   */
+  inline bool check(Adafruit_GPS& GPS) {
      // Read data from GPS directly
     char c = GPS.read();
 
@@ -80,9 +96,14 @@ namespace GPS {
     return true;
   }
   
-  inline GPSData read_data(Adafruit_GPS& GPS) {
-    GPSData data;
-
+  /**
+   * @brief Returns parsed data from GPS module
+   * 
+   * @param GPS gps object
+   * @return Data gps data
+   */
+  inline Data read(Adafruit_GPS& GPS) {
+    
     // Time and date
     data.timestamp.year = GPS.year;
     data.timestamp.month = GPS.month;
@@ -114,7 +135,12 @@ namespace GPS {
     return data;
   }
 
-  inline void print_data(const GPSData& data) {
+  /**
+   * @brief Prints formatted GPS data
+   * 
+   * @param data gps data to print
+   */
+  inline void print(const Data& data) {
     DEBUG_PRINT(" Fix: "); DEBUG_PRINT(data.fix);
     DEBUG_PRINT(" \t Satellites: "); DEBUG_PRINT(data.satellites);
 

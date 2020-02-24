@@ -1,8 +1,18 @@
 #pragma once 
 
+/**
+ * File to encapsulate functions that interface with the GPS directly using TinyGPS for parsing; GPS model independent.
+ * Makes use of the TinyGPS library 
+ */
+
 #include "TinyGPS.h"
 
+/**
+ * Other GPS namespace; encapsulates all related functions that use direct serial access
+ */
 namespace OtherGPS {
+  
+  // Time and date data
   struct TimeStamp {
     byte hr;                                     
     byte min;                                   
@@ -13,6 +23,7 @@ namespace OtherGPS {
     byte day;                                      
   };
 
+  // GPS parsing statistics
   struct Stats {
     unsigned long chars;
     unsigned short seqs;
@@ -20,11 +31,12 @@ namespace OtherGPS {
   };
 
   struct Coord {
+    // In decimal degrees
       double lat;
       double lon;
   };
     
-  struct GPSData {
+  struct Data {
     // GPS timestamp, dd/mm/yy hr:min:sec:msec
     TimeStamp timestamp;
     Coord coord;
@@ -34,14 +46,29 @@ namespace OtherGPS {
     float speed, altitude, angle;
   };
 
+  // Anonymous namespace to protect data (make private)
+  namespace {
+    Data data;
+  }
   
+  /**
+   * @brief Initialize serial port that is connected to GPS
+   * 
+   * @param port hardware serial port for GPS
+   */
   inline void init(HardwareSerial& port) {
     port.begin(9600);
     while(!port){}
   }
 
-  inline GPSData read_data(TinyGPS& gps, HardwareSerial& port) {
-    GPSData data;
+  /**
+   * @brief Parse GPS data
+   * 
+   * @param gps gps parsing
+   * @param port gps port
+   * @return Data resulting gps data
+   */
+  inline Data read(TinyGPS& gps, HardwareSerial& port) {
 
     float flat, flon;
     unsigned long age, chars = 0;
@@ -76,7 +103,12 @@ namespace OtherGPS {
     return data;
   }
 
-  inline void print_data(const GPSData& data) {
+  /**
+   * @brief Print formatted GPS data
+   * 
+   * @param data gps data to print
+   */
+  inline void print(const Data& data) {
     DEBUG_PRINT(" Satellites: "); DEBUG_PRINT(data.satellites);
 
     // Print time stamp
@@ -103,6 +135,14 @@ namespace OtherGPS {
     DEBUG_PRINTLN("");
   }
   
+  /**
+   * @brief Fill buffer with GPS characters to form valid sentences
+   * @details Without any interrupts, the user has to tell the GPS to fill its NMEA buffer for any data to be parsed
+   * 
+   * @param gps gps parser
+   * @param port gps port
+   * @param ms delay, how long to fill gps buffer for 
+   */
   inline void fill_buffer(TinyGPS& gps, HardwareSerial& port, unsigned long ms) {
     unsigned long start = millis();
     do {

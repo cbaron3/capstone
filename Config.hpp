@@ -13,8 +13,8 @@ using Pin = unsigned int;
 enum mode_type {MODE_MANUAL = 0, MODE_AUTO = 1};
 static constexpr mode_type DEFAULT_MODE = MODE_AUTO;
 
-
 #define  DEBUG
+// #define  VERBOSE_DEBUG
 #define  TEST_TRAINER
 
 #ifdef DEBUG
@@ -30,15 +30,29 @@ static constexpr mode_type DEFAULT_MODE = MODE_AUTO;
 #if defined(FINAL_GLIDER)
     static constexpr unsigned long LEFT_ELEVON_MS_OFFSET = 0;
     static constexpr unsigned long RIGHT_ELEVON_MS_OFFSET = 0;
+
+    static constexpr float SERVO_MIN_MS = 800.0f;
+    static constexpr float SERVO_MAX_MS = 2000.0f;
+
 #elif defined(TEST_GLIDER)
     static constexpr unsigned long LEFT_ELEVON_MS_OFFSET = 0;
     static constexpr unsigned long RIGHT_ELEVON_MS_OFFSET = 0;
+
+    static constexpr float SERVO_MIN_MS = 800.0f;
+    static constexpr float SERVO_MAX_MS = 2000.0f;
+
 #elif defined(TEST_TRAINER)
     static constexpr unsigned long LEFT_ELEVON_MS_OFFSET = 40;   // Pitch
     static constexpr unsigned long RIGHT_ELEVON_MS_OFFSET = 50; // Roll
+
+    static constexpr float SERVO_MIN_MS = 900.0f;
+    static constexpr float SERVO_MAX_MS = 2100.0f;
 #else 
     static constexpr unsigned long LEFT_ELEVON_MS_OFFSET = 0;
     static constexpr unsigned long RIGHT_ELEVON_MS_OFFSET = 0;
+
+    static constexpr float SERVO_MIN_MS = 800.0f;
+    static constexpr float SERVO_MAX_MS = 2000.0f;
 #endif
 
 /* DEVICE NAMES */
@@ -80,7 +94,6 @@ static constexpr double ALTITUDE_BIAS = 238.0f; // In metres
 static constexpr unsigned long OVER_SAMPLE_PERIODS_MS[] = {6, 10, 18, 34, 66, 130, 258, 512};
 static constexpr int OVER_SAMPLE_RATIO = 7;
 
-
 /* SYSTEM FLAGS */
 static constexpr bool DEBUG_MODE = true;  // Block usage of Serial printing if not debugging to speed up system
 
@@ -101,29 +114,30 @@ static constexpr Pin MODE_LED = LED4;     // On when in manual mode, else off
 /* SERVOS */
 static constexpr Pin SERVO1 = 20;
 static constexpr Pin SERVO2 = 21;
-static constexpr Pin SERVOS[] = {SERVO1, SERVO2};
+static constexpr Pin SERVO3 = 3;
+static constexpr Pin SERVOS[] = {SERVO1, SERVO2, SERVO3};
 
 static constexpr float SERVO_MIN_ANGLE = 0.0f;
 static constexpr float SERVO_MAX_ANGLE = 179.0f;
-//static constexpr float SERVO_MIN_MS = 800.0f;
-//static constexpr float SERVO_MAX_MS = 2000.0f;
 
-static constexpr float SERVO_MIN_MS = 900.0f;
-static constexpr float SERVO_MAX_MS = 2100.0f;
-
-
-// For glider
-//static constexpr int DEFAULT_LEFT_ELEVON_ANGLE = 90;
-//static constexpr int DEFAULT_RIGHT_ELEVON_ANGLE = 90;
+const int RADIO_ID = 0;
+const int GPS_ID = 1;
+const int I2C_ID = 2;
+const int SETPOINT_ID = 3;
+const int AUTO_ID = 4;
+const int MANUAL_ID = 5;
+const int ACTIVITY_ID = 6;
+const int DEBUG_ID = 7;
 
 // For fixed wing trainer
 static constexpr int DEFAULT_LEFT_ELEVON_ANGLE = 90;
 static constexpr int DEFAULT_RIGHT_ELEVON_ANGLE = 90;
 
 /* RECEIVER INPUTS */
-static constexpr Pin RECEIVER1 = 22;  // Left elevon
+static constexpr Pin RECEIVER1 = 22;   // Left elevon
 static constexpr Pin RECEIVER2 = 23;  // Right elevon
-static constexpr Pin RECEIVERS[] = {RECEIVER1, RECEIVER2};
+static constexpr Pin RECEIVER3 = 4;   // Rudder
+static constexpr Pin RECEIVERS[] = {RECEIVER1, RECEIVER2, RECEIVER3};
 
 /* RADIO */
 static constexpr Pin RADIO_CS = 14;
@@ -154,8 +168,11 @@ static constexpr HardwareSerial *GPS_PORT = &Serial2;
 static constexpr Pin GPS_FIX =  4;
 
 /* DELAYS */
+const long GPS_INTERVAL_MS = 1000;
 const unsigned long THREAD_DELAY_MS = 1000;
+const unsigned long DEBUG_INTERVAL_MS = 250;
 const unsigned long IMU_SAMPLE_INTERVAL_MS = 20;
+const unsigned long RADIO_INTERVAL_MS = 250;
 const unsigned long MANUAL_INTERVAL_MS = 20;    // 50 HZ Servos
 const unsigned long AUTO_INTERVAL_MS = 20;      // 50 HZ Servos
 static constexpr int BARO_SAMPLE_INTERVAL_MS = OVER_SAMPLE_PERIODS_MS[OVER_SAMPLE_RATIO];

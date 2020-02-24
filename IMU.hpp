@@ -1,9 +1,12 @@
 #pragma once
 
+/**
+ * File to encapsulate functions that interface with the imu; MPU9250.
+ * Makes use of the Bolderflight MPU9250 library 
+ */
 
 #include "src/SparkFun_MPU-9250-DMP_Arduino_Library/SparkFunMPU9250-DMP.h"
 #include "src/uNavAHRS/uNavAHRS.h"
-#include "src/EWMA/Ewma.h"
 #include <MPU9250.h>
 #include "LEDS.hpp"
 #include <EEPROM.h>
@@ -11,9 +14,12 @@
 #include "Config.hpp"
 
 /**
- * GPS namespace; encapsulates all related functions
+ * IMU namespace; encapsulates all related functions
  */
 namespace IMU {
+
+  enum SENSOR { ACCEL = 1, GYRO = 2, MAG = 4 };
+
   struct Data {
     float ax, ay, az; // meters/s^s
     float gx, gy, gz; // rad/s
@@ -21,17 +27,20 @@ namespace IMU {
   };
   
   namespace {
-    uint8_t EepromBuffer[48];
-    unsigned int MAG_OFFSET = 24;
-
     
+    // EEPROM values
+    uint8_t eeprom_buffer[48];
+    const unsigned int MAG_OFFSET = 24;
+
     Data data;
 
+    // Calibrate accelerometer routine
     inline void calibrate_accel(MPU9250& imu) {
       DEBUG_PRINTLN("Starting Accelerometer Calibration");
       for(int j = 0; j < 5; j++) { LEDS::flash(500); }
       delay(2500);
       
+      // Delay to allow user to swap XYZ plane; flash LEDs to notify user to swap
       for(int i = 0; i < 6; i++) {
         imu.calibrateAccel();
         DEBUG_PRINTLN("Switch");
@@ -39,27 +48,29 @@ namespace IMU {
         delay(2500);
       }
 
+      // Load biases and sensitivites into eeprom
       float value;
       value = imu.getAccelBiasX_mss();
-      memcpy(EepromBuffer,&value,4);
+      memcpy(eeprom_buffer,&value,4);
       value = imu.getAccelScaleFactorX();
-      memcpy(EepromBuffer+4,&value,4);
+      memcpy(eeprom_buffer+4,&value,4);
       value = imu.getAccelBiasY_mss();
-      memcpy(EepromBuffer+8,&value,4);
+      memcpy(eeprom_buffer+8,&value,4);
       value = imu.getAccelScaleFactorY();
-      memcpy(EepromBuffer+12,&value,4);
+      memcpy(eeprom_buffer+12,&value,4);
       value = imu.getAccelBiasZ_mss();
-      memcpy(EepromBuffer+16,&value,4);
+      memcpy(eeprom_buffer+16,&value,4);
       value = imu.getAccelScaleFactorZ();
-      memcpy(EepromBuffer+20,&value,4);
+      memcpy(eeprom_buffer+20,&value,4);
 
       for (size_t i=0; i < MAG_OFFSET; i++) {
-        EEPROM.write(i,EepromBuffer[i]);
+        EEPROM.write(i,eeprom_buffer[i]);
       }
       
       DEBUG_PRINTLN("Accelerometer Calibration Done");
     }
     
+    // Calibrate gyorscope routine
     inline void calibrate_gyro(MPU9250& imu) {
       DEBUG_PRINTLN("Starting Gyroscope Calibration");
       
@@ -75,31 +86,36 @@ namespace IMU {
       
     }
     
+    // Calibrate magnetometer routine
     inline void calibrate_mag(MPU9250& imu) {
-      // Do nothing, need to pass in EEPROM. Figure 8 motion.
+      // Figure 8 motion.
       DEBUG_PRINTLN("Starting Magnometer Calibration");
+      
+      // LEDs sweep to indicate user should start figure 8 motion
       for(int j = 0; j < 6; j++) { LEDS::sweep(100); }
 
       imu.calibrateMag();
 
+      // LEDs sweep again to indicate user should stop figure 8 motion
       for(int j = 0; j < 6; j++) { LEDS::sweep(100); }
 
+      // Load biases and sensitivites into eeprom
       float value;
       value = imu.getMagBiasX_uT();
-      memcpy(EepromBuffer+24,&value,4);
+      memcpy(eeprom_buffer+24,&value,4);
       value = imu.getMagScaleFactorX();
-      memcpy(EepromBuffer+28,&value,4);
+      memcpy(eeprom_buffer+28,&value,4);
       value = imu.getMagBiasY_uT();
-      memcpy(EepromBuffer+32,&value,4);
+      memcpy(eeprom_buffer+32,&value,4);
       value = imu.getMagScaleFactorY();
-      memcpy(EepromBuffer+36,&value,4);
+      memcpy(eeprom_buffer+36,&value,4);
       value = imu.getMagBiasZ_uT();
-      memcpy(EepromBuffer+40,&value,4);
+      memcpy(eeprom_buffer+40,&value,4);
       value = imu.getMagScaleFactorZ();
-      memcpy(EepromBuffer+44,&value,4);
+      memcpy(eeprom_buffer+44,&value,4);
   
-      for (size_t i=MAG_OFFSET; i < sizeof(EepromBuffer); i++) {
-        EEPROM.write(i,EepromBuffer[i]);
+      for (size_t i=MAG_OFFSET; i < sizeof(eeprom_buffer); i++) {
+        EEPROM.write(i,eeprom_buffer[i]);
       }
 
       DEBUG_PRINTLN("Magnometer Calibration Done");
@@ -107,13 +123,15 @@ namespace IMU {
   
   }
 
-  
-
-  enum SENSOR { ACCEL = 1, GYRO = 2, MAG = 4 };
-  
+  /**
+   * @brief Initialize imu 
+   * 
+   * @param imu imu object to initialize
+   */
   inline void init(MPU9250& imu) {
     // start communication with IMU 
     int status = imu.begin();
+
     if (status < 0) {
       DEBUG_PRINTLN("IMU initialization unsuccessful");
       DEBUG_PRINTLN("Check IMU wiring or try cycling power");
@@ -122,27 +140,26 @@ namespace IMU {
       while(1) {}
     }
 
-    // load and set accel and mag bias and scale
-    // factors from CalibrateMPU9250.ino 
-    for (size_t i=0; i < sizeof(EepromBuffer); i++) {
-      EepromBuffer[i] = EEPROM.read(i);
+    // load and set accel and mag bias and scale factors
+    for (size_t i=0; i < sizeof(eeprom_buffer); i++) {
+      eeprom_buffer[i] = EEPROM.read(i);
     }
 
     float axb, axs, ayb, ays, azb, azs;
     float hxb, hxs, hyb, hys, hzb, hzs;
 
-    memcpy(&axb,EepromBuffer+0,4);
-    memcpy(&axs,EepromBuffer+4,4);
-    memcpy(&ayb,EepromBuffer+8,4);
-    memcpy(&ays,EepromBuffer+12,4);
-    memcpy(&azb,EepromBuffer+16,4);
-    memcpy(&azs,EepromBuffer+20,4);
-    memcpy(&hxb,EepromBuffer+24,4);
-    memcpy(&hxs,EepromBuffer+28,4);
-    memcpy(&hyb,EepromBuffer+32,4);
-    memcpy(&hys,EepromBuffer+36,4);
-    memcpy(&hzb,EepromBuffer+40,4);
-    memcpy(&hzs,EepromBuffer+44,4);
+    memcpy(&axb,eeprom_buffer+0,4);
+    memcpy(&axs,eeprom_buffer+4,4);
+    memcpy(&ayb,eeprom_buffer+8,4);
+    memcpy(&ays,eeprom_buffer+12,4);
+    memcpy(&azb,eeprom_buffer+16,4);
+    memcpy(&azs,eeprom_buffer+20,4);
+    memcpy(&hxb,eeprom_buffer+24,4);
+    memcpy(&hxs,eeprom_buffer+28,4);
+    memcpy(&hyb,eeprom_buffer+32,4);
+    memcpy(&hys,eeprom_buffer+36,4);
+    memcpy(&hzb,eeprom_buffer+40,4);
+    memcpy(&hzs,eeprom_buffer+44,4);
   
     imu.setAccelCalX(axb,axs);
     imu.setAccelCalY(ayb,ays);
@@ -164,7 +181,13 @@ namespace IMU {
     
   }
 
-   inline Data read_data(MPU9250& imu) {
+  /**
+   * @brief Read data from sensor
+   * 
+   * @param imu imu to read data from
+   * @return Data resulting data
+   */
+  inline Data read(MPU9250& imu) {
     imu.readSensor();
 
     data.ax = imu.getAccelX_mss();
@@ -182,8 +205,13 @@ namespace IMU {
     return data;
   }
 
-  inline void print_data(const Data& data) {
-    // display the data
+  /**
+   * @brief Print formatted IMU data
+   * 
+   * @param data data to print
+   */
+  inline void print(const Data& data) {
+
     DEBUG_PRINT(" AX (m/s^s): "); DEBUG_PRINT(data.ax);
     DEBUG_PRINT("\t AY (m/s^s): "); DEBUG_PRINT(data.ay);
     DEBUG_PRINT("\t AZ (m/s^s): "); DEBUG_PRINT(data.az);
@@ -209,6 +237,8 @@ namespace IMU {
   }
 }
 
+/* OLD TEST CODE TO CHECK */
+// For some reason this dynamic polymorphism isnt working
 //class IMU {
 //
 //public:
