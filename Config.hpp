@@ -11,10 +11,10 @@
 using Pin = unsigned int;
 
 enum mode_type {MODE_MANUAL = 0, MODE_AUTO = 1};
-static constexpr mode_type DEFAULT_MODE = MODE_MANUAL;
+static constexpr mode_type DEFAULT_MODE = MODE_AUTO;
 
 
-//#define  DEBUG
+#define  DEBUG
 #define  TEST_TRAINER
 
 #ifdef DEBUG

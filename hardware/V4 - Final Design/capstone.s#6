@@ -14250,8 +14250,14 @@ new: Attribute TP_SIGNAL_NAME&lt;br&gt;
 <part name="TP7" library="testpad" library_urn="urn:adsk.eagle:library:385" deviceset="PTR1" device="PAD1-20" package3d_urn="urn:adsk.eagle:package:27950/1"/>
 <part name="TP8" library="testpad" library_urn="urn:adsk.eagle:library:385" deviceset="PTR1" device="PAD1-20" package3d_urn="urn:adsk.eagle:package:27950/1"/>
 <part name="TP9" library="testpad" library_urn="urn:adsk.eagle:library:385" deviceset="PTR1" device="PAD1-20" package3d_urn="urn:adsk.eagle:package:27950/1"/>
-<part name="TP10" library="testpad" library_urn="urn:adsk.eagle:library:385" deviceset="PTR1" device="TP08SQ" package3d_urn="urn:adsk.eagle:package:27960/1"/>
-<part name="TP11" library="testpad" library_urn="urn:adsk.eagle:library:385" deviceset="PTR1" device="TP08SQ" package3d_urn="urn:adsk.eagle:package:27960/1"/>
+<part name="TP12" library="testpad" library_urn="urn:adsk.eagle:library:385" deviceset="PTR1" device="PAD1-20" package3d_urn="urn:adsk.eagle:package:27950/1"/>
+<part name="TP13" library="testpad" library_urn="urn:adsk.eagle:library:385" deviceset="PTR1" device="PAD1-20" package3d_urn="urn:adsk.eagle:package:27950/1"/>
+<part name="TP14" library="testpad" library_urn="urn:adsk.eagle:library:385" deviceset="PTR1" device="PAD1-20" package3d_urn="urn:adsk.eagle:package:27950/1"/>
+<part name="TP15" library="testpad" library_urn="urn:adsk.eagle:library:385" deviceset="PTR1" device="PAD1-20" package3d_urn="urn:adsk.eagle:package:27950/1"/>
+<part name="TP17" library="testpad" library_urn="urn:adsk.eagle:library:385" deviceset="PTR1" device="PAD1-20" package3d_urn="urn:adsk.eagle:package:27950/1"/>
+<part name="TP18" library="testpad" library_urn="urn:adsk.eagle:library:385" deviceset="PTR1" device="PAD1-20" package3d_urn="urn:adsk.eagle:package:27950/1"/>
+<part name="TP10" library="testpad" library_urn="urn:adsk.eagle:library:385" deviceset="PTR1" device="PAD1-20" package3d_urn="urn:adsk.eagle:package:27950/1"/>
+<part name="TP11" library="testpad" library_urn="urn:adsk.eagle:library:385" deviceset="PTR1" device="PAD1-20" package3d_urn="urn:adsk.eagle:package:27950/1"/>
 </parts>
 <sheets>
 <sheet>
@@ -15483,6 +15489,30 @@ Radio</text>
 <attribute name="NAME" x="93.98" y="85.09" size="1.778" layer="95" rot="R180"/>
 <attribute name="VALUE" x="93.98" y="86.36" size="1.778" layer="96" rot="R180"/>
 </instance>
+<instance part="TP12" gate="G$1" x="109.22" y="109.22" smashed="yes" rot="R180">
+<attribute name="NAME" x="110.236" y="115.57" size="1.778" layer="95" rot="R270"/>
+<attribute name="TP_SIGNAL_NAME" x="107.95" y="111.76" size="1.778" layer="97" rot="R180"/>
+</instance>
+<instance part="TP13" gate="G$1" x="83.82" y="104.14" smashed="yes" rot="R180">
+<attribute name="NAME" x="84.836" y="110.49" size="1.778" layer="95" rot="R270"/>
+<attribute name="TP_SIGNAL_NAME" x="82.55" y="106.68" size="1.778" layer="97" rot="R180"/>
+</instance>
+<instance part="TP14" gate="G$1" x="83.82" y="91.44" smashed="yes">
+<attribute name="NAME" x="82.804" y="85.09" size="1.778" layer="95" rot="R90"/>
+<attribute name="TP_SIGNAL_NAME" x="85.09" y="88.9" size="1.778" layer="97"/>
+</instance>
+<instance part="TP15" gate="G$1" x="99.06" y="73.66" smashed="yes">
+<attribute name="NAME" x="98.044" y="67.31" size="1.778" layer="95" rot="R90"/>
+<attribute name="TP_SIGNAL_NAME" x="100.33" y="71.12" size="1.778" layer="97"/>
+</instance>
+<instance part="TP17" gate="G$1" x="154.94" y="111.76" smashed="yes" rot="R180">
+<attribute name="NAME" x="155.956" y="118.11" size="1.778" layer="95" rot="R270"/>
+<attribute name="TP_SIGNAL_NAME" x="153.67" y="114.3" size="1.778" layer="97" rot="R180"/>
+</instance>
+<instance part="TP18" gate="G$1" x="152.4" y="101.6" smashed="yes">
+<attribute name="NAME" x="151.384" y="95.25" size="1.778" layer="95" rot="R90"/>
+<attribute name="TP_SIGNAL_NAME" x="153.67" y="99.06" size="1.778" layer="97"/>
+</instance>
 </instances>
 <busses>
 </busses>
@@ -15526,12 +15556,15 @@ Radio</text>
 <net name="+3V3" class="0">
 <segment>
 <pinref part="U3" gate="G$1" pin="3.3V"/>
-<wire x1="149.86" y1="109.22" x2="160.02" y2="109.22" width="0.1524" layer="91"/>
+<wire x1="149.86" y1="109.22" x2="154.94" y2="109.22" width="0.1524" layer="91"/>
+<wire x1="154.94" y1="109.22" x2="160.02" y2="109.22" width="0.1524" layer="91"/>
 <wire x1="160.02" y1="109.22" x2="160.02" y2="114.3" width="0.1524" layer="91"/>
 <pinref part="+3V14" gate="G$1" pin="+3V3"/>
 <pinref part="C4" gate="G$1" pin="1"/>
 <wire x1="160.02" y1="109.22" x2="162.56" y2="109.22" width="0.1524" layer="91"/>
 <junction x="160.02" y="109.22"/>
+<pinref part="TP17" gate="G$1" pin="TP"/>
+<junction x="154.94" y="109.22"/>
 </segment>
 </net>
 <net name="MISO" class="0">
@@ -15541,20 +15574,28 @@ Radio</text>
 <label x="104.14" y="106.68" size="1.778" layer="95" rot="R180" xref="yes"/>
 <wire x1="109.22" y1="104.14" x2="109.22" y2="106.68" width="0.1524" layer="91"/>
 <wire x1="109.22" y1="106.68" x2="104.14" y2="106.68" width="0.1524" layer="91"/>
+<pinref part="TP12" gate="G$1" pin="TP"/>
+<junction x="109.22" y="106.68"/>
 </segment>
 </net>
 <net name="SCK" class="0">
 <segment>
 <pinref part="U3" gate="G$1" pin="SCK"/>
-<wire x1="114.3" y1="101.6" x2="78.74" y2="101.6" width="0.1524" layer="91"/>
+<wire x1="114.3" y1="101.6" x2="83.82" y2="101.6" width="0.1524" layer="91"/>
 <label x="78.74" y="101.6" size="1.778" layer="95" rot="R180" xref="yes"/>
+<pinref part="TP13" gate="G$1" pin="TP"/>
+<wire x1="83.82" y1="101.6" x2="78.74" y2="101.6" width="0.1524" layer="91"/>
+<junction x="83.82" y="101.6"/>
 </segment>
 </net>
 <net name="MOSI" class="0">
 <segment>
 <pinref part="U3" gate="G$1" pin="MOSI"/>
 <label x="154.94" y="104.14" size="1.778" layer="95" xref="yes"/>
-<wire x1="149.86" y1="104.14" x2="154.94" y2="104.14" width="0.1524" layer="91"/>
+<wire x1="149.86" y1="104.14" x2="152.4" y2="104.14" width="0.1524" layer="91"/>
+<pinref part="TP18" gate="G$1" pin="TP"/>
+<wire x1="152.4" y1="104.14" x2="154.94" y2="104.14" width="0.1524" layer="91"/>
+<junction x="152.4" y="104.14"/>
 </segment>
 </net>
 <net name="RADIO_INT" class="0">
@@ -15563,14 +15604,20 @@ Radio</text>
 <wire x1="114.3" y1="88.9" x2="109.22" y2="88.9" width="0.1524" layer="91"/>
 <wire x1="109.22" y1="88.9" x2="109.22" y2="76.2" width="0.1524" layer="91"/>
 <label x="93.98" y="76.2" size="1.778" layer="95" rot="R180" xref="yes"/>
-<wire x1="109.22" y1="76.2" x2="93.98" y2="76.2" width="0.1524" layer="91"/>
+<wire x1="109.22" y1="76.2" x2="99.06" y2="76.2" width="0.1524" layer="91"/>
+<pinref part="TP15" gate="G$1" pin="TP"/>
+<wire x1="99.06" y1="76.2" x2="93.98" y2="76.2" width="0.1524" layer="91"/>
+<junction x="99.06" y="76.2"/>
 </segment>
 </net>
 <net name="RADIO_RST" class="0">
 <segment>
 <pinref part="U3" gate="G$1" pin="RESET"/>
-<wire x1="114.3" y1="93.98" x2="78.74" y2="93.98" width="0.1524" layer="91"/>
+<wire x1="114.3" y1="93.98" x2="83.82" y2="93.98" width="0.1524" layer="91"/>
 <label x="78.74" y="93.98" size="1.778" layer="95" rot="R180" xref="yes"/>
+<pinref part="TP14" gate="G$1" pin="TP"/>
+<wire x1="83.82" y1="93.98" x2="78.74" y2="93.98" width="0.1524" layer="91"/>
+<junction x="83.82" y="93.98"/>
 </segment>
 </net>
 <net name="RADIO_CS" class="0">

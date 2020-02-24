@@ -159,9 +159,9 @@
 <board>
 <plain>
 <wire x1="0" y1="49.53" x2="0" y2="2.54" width="0" layer="20"/>
-<wire x1="0" y1="2.54" x2="2.54" y2="0" width="0" layer="20" curve="90"/>
-<wire x1="2.54" y1="0" x2="66.04" y2="0" width="0" layer="20"/>
-<wire x1="66.04" y1="0" x2="68.56" y2="2.52" width="0" layer="20" curve="90"/>
+<wire x1="0" y1="2.54" x2="2.667" y2="-0.508" width="0" layer="20" curve="90"/>
+<wire x1="2.667" y1="-0.508" x2="66.167" y2="-0.508" width="0" layer="20"/>
+<wire x1="66.167" y1="-0.508" x2="68.56" y2="2.52" width="0" layer="20" curve="90"/>
 <wire x1="68.56" y1="2.52" x2="68.56" y2="49.53" width="0" layer="20"/>
 <wire x1="68.56" y1="49.53" x2="66.82" y2="51.27" width="0" layer="20" curve="90"/>
 <wire x1="66.82" y1="51.27" x2="1.74" y2="51.27" width="0" layer="20"/>
@@ -182,13 +182,13 @@
 <text x="57.15" y="1.016" size="0.6096" layer="25">TP GND</text>
 <text x="63.5" y="27.686" size="0.6096" layer="25">TP BACKUP</text>
 <text x="16.51" y="48.006" size="0.6096" layer="25">TP IMU PWR</text>
-<text x="4.445" y="9.271" size="0.6096" layer="25" rot="R180">470</text>
+<text x="4.445" y="9.271" size="0.6096" layer="25" rot="R180">82</text>
 <text x="6.477" y="18.542" size="0.6096" layer="25" rot="R180">POWER LED</text>
 <text x="4.699" y="42.291" size="0.6096" layer="25" rot="R180">ANT</text>
 <text x="12.319" y="41.021" size="0.6096" layer="25" rot="R180">TP RADIO PWR</text>
-<text x="59.309" y="39.751" size="0.6096" layer="25" rot="R180">470</text>
-<text x="59.309" y="37.211" size="0.6096" layer="25" rot="R180">470</text>
-<text x="59.309" y="34.671" size="0.6096" layer="25" rot="R180">470</text>
+<text x="59.309" y="39.751" size="0.6096" layer="25" rot="R180">82</text>
+<text x="59.309" y="37.211" size="0.6096" layer="25" rot="R180">82</text>
+<text x="59.309" y="34.671" size="0.6096" layer="25" rot="R180">82</text>
 <text x="66.929" y="42.291" size="0.6096" layer="25" rot="R180">RADIO LED</text>
 <text x="66.929" y="39.751" size="0.6096" layer="25" rot="R180">ERROR LED</text>
 <text x="66.929" y="37.211" size="0.6096" layer="25" rot="R180">STATUS LED</text>
@@ -208,6 +208,9 @@
 <text x="12.319" y="50.419" size="0.6096" layer="25" rot="R180">100n</text>
 <text x="12.319" y="46.609" size="0.6096" layer="25" rot="R180">100n</text>
 <text x="12.192" y="39.751" size="0.6096" layer="25" rot="R180">10u</text>
+<dimension x1="0" y1="49.53" x2="68.56" y2="49.53" x3="34.28" y3="57.15" textsize="1.778" layer="20"/>
+<dimension x1="66.167" y1="-0.508" x2="66.04" y2="50.8" x3="76.250865625" y3="25.171115625" textsize="1.778" layer="20"/>
+<dimension x1="3.81" y1="39.37" x2="3.81" y2="35.02" x3="-5.08" y3="37.195" textsize="1.778" layer="20"/>
 </plain>
 <libraries>
 <library name="LED" urn="urn:adsk.eagle:library:11396303">
@@ -3098,7 +3101,7 @@ new: Attribute TP_SIGNAL_NAME&lt;br&gt;
 <class number="0" name="default" width="0" drill="0">
 </class>
 </classes>
-<designrules name="default">
+<designrules name="capstone-drc">
 <description language="de">&lt;b&gt;EAGLE Design Rules&lt;/b&gt;
 &lt;p&gt;
 Die Standard-Design-Rules sind so gewählt, dass sie für 
@@ -3116,22 +3119,22 @@ design rules under a new name.</description>
 <param name="layerSetup" value="(1*16)"/>
 <param name="mtCopper" value="0.035mm 0.035mm 0.035mm 0.035mm 0.035mm 0.035mm 0.035mm 0.035mm 0.035mm 0.035mm 0.035mm 0.035mm 0.035mm 0.035mm 0.035mm 0.035mm"/>
 <param name="mtIsolate" value="1.5mm 0.15mm 0.2mm 0.15mm 0.2mm 0.15mm 0.2mm 0.15mm 0.2mm 0.15mm 0.2mm 0.15mm 0.2mm 0.15mm 0.2mm"/>
-<param name="mdWireWire" value="6mil"/>
-<param name="mdWirePad" value="6mil"/>
-<param name="mdWireVia" value="6mil"/>
-<param name="mdPadPad" value="6mil"/>
-<param name="mdPadVia" value="6mil"/>
-<param name="mdViaVia" value="6mil"/>
-<param name="mdSmdPad" value="6mil"/>
-<param name="mdSmdVia" value="6mil"/>
-<param name="mdSmdSmd" value="6mil"/>
+<param name="mdWireWire" value="5mil"/>
+<param name="mdWirePad" value="5mil"/>
+<param name="mdWireVia" value="5mil"/>
+<param name="mdPadPad" value="5mil"/>
+<param name="mdPadVia" value="5mil"/>
+<param name="mdViaVia" value="5mil"/>
+<param name="mdSmdPad" value="5mil"/>
+<param name="mdSmdVia" value="5mil"/>
+<param name="mdSmdSmd" value="5mil"/>
 <param name="mdViaViaSameLayer" value="6mil"/>
 <param name="mnLayersViaInSmd" value="2"/>
 <param name="mdCopperDimension" value="40mil"/>
-<param name="mdDrill" value="6mil"/>
+<param name="mdDrill" value="5mil"/>
 <param name="mdSmdStop" value="0mil"/>
-<param name="msWidth" value="6mil"/>
-<param name="msDrill" value="0.35mm"/>
+<param name="msWidth" value="5mil"/>
+<param name="msDrill" value="0.2mm"/>
 <param name="msMicroVia" value="9.99mm"/>
 <param name="msBlindViaRatio" value="0.5"/>
 <param name="rvPadTop" value="0.25"/>
@@ -3141,19 +3144,19 @@ design rules under a new name.</description>
 <param name="rvViaInner" value="0.25"/>
 <param name="rvMicroViaOuter" value="0.25"/>
 <param name="rvMicroViaInner" value="0.25"/>
-<param name="rlMinPadTop" value="10mil"/>
+<param name="rlMinPadTop" value="3mil"/>
 <param name="rlMaxPadTop" value="20mil"/>
-<param name="rlMinPadInner" value="10mil"/>
+<param name="rlMinPadInner" value="3mil"/>
 <param name="rlMaxPadInner" value="20mil"/>
-<param name="rlMinPadBottom" value="10mil"/>
+<param name="rlMinPadBottom" value="3mil"/>
 <param name="rlMaxPadBottom" value="20mil"/>
-<param name="rlMinViaOuter" value="8mil"/>
+<param name="rlMinViaOuter" value="3mil"/>
 <param name="rlMaxViaOuter" value="20mil"/>
-<param name="rlMinViaInner" value="8mil"/>
+<param name="rlMinViaInner" value="3mil"/>
 <param name="rlMaxViaInner" value="20mil"/>
-<param name="rlMinMicroViaOuter" value="4mil"/>
+<param name="rlMinMicroViaOuter" value="3mil"/>
 <param name="rlMaxMicroViaOuter" value="20mil"/>
-<param name="rlMinMicroViaInner" value="4mil"/>
+<param name="rlMinMicroViaInner" value="3mil"/>
 <param name="rlMaxMicroViaInner" value="20mil"/>
 <param name="psTop" value="-1"/>
 <param name="psBottom" value="-1"/>
@@ -3282,12 +3285,12 @@ design rules under a new name.</description>
 </pass>
 </autorouter>
 <elements>
-<element name="PWR_LED" library="LED" library_urn="urn:adsk.eagle:library:11396303" package="LED-0603" package3d_urn="urn:adsk.eagle:package:10893503/2" value="HSMH-C190" x="64.77" y="40.64" smashed="yes" rot="R180">
-<attribute name="CREATED_BY" value="PCBLayout.com" x="15.24" y="101.6" size="1.778" layer="27" rot="R180" display="off"/>
-<attribute name="DIGIKEY_PART_NUMBER" value="516-1420-1-ND" x="15.24" y="101.6" size="1.778" layer="27" rot="R180" display="off"/>
-<attribute name="MANUFACTURER" value="Broadcom Limited" x="15.24" y="101.6" size="1.778" layer="27" rot="R180" display="off"/>
-<attribute name="MPN" value="HSMH-C190" x="15.24" y="101.6" size="1.778" layer="27" rot="R180" display="off"/>
-<attribute name="PACKAGE" value="0603" x="15.24" y="101.6" size="1.778" layer="27" rot="R180" display="off"/>
+<element name="LED4" library="LED" library_urn="urn:adsk.eagle:library:11396303" package="LED-0603" package3d_urn="urn:adsk.eagle:package:10893503/2" value="HSMH-C190" x="64.77" y="40.64" smashed="yes">
+<attribute name="CREATED_BY" value="PCBLayout.com" x="114.3" y="-20.32" size="1.778" layer="27" display="off"/>
+<attribute name="DIGIKEY_PART_NUMBER" value="516-1420-1-ND" x="114.3" y="-20.32" size="1.778" layer="27" display="off"/>
+<attribute name="MANUFACTURER" value="Broadcom Limited" x="114.3" y="-20.32" size="1.778" layer="27" display="off"/>
+<attribute name="MPN" value="HSMH-C190" x="114.3" y="-20.32" size="1.778" layer="27" display="off"/>
+<attribute name="PACKAGE" value="0603" x="114.3" y="-20.32" size="1.778" layer="27" display="off"/>
 </element>
 <element name="J1" library="Headers" library_urn="urn:adsk.eagle:library:11448911" package="61300311121" package3d_urn="urn:adsk.eagle:package:11390689/2" value="61300311121" x="13.97" y="5.08" smashed="yes" rot="R270">
 <attribute name="CREATED_BY" value="PCBLayout.com" x="-49.53" y="-15.24" size="1.778" layer="27" rot="R270" display="off"/>
@@ -3334,7 +3337,7 @@ design rules under a new name.</description>
 <element name="C2" library="resistor" library_urn="urn:adsk.eagle:library:348" package="C0603" package3d_urn="urn:adsk.eagle:package:23616/2" value="100 n" x="33.02" y="49.53" smashed="yes"/>
 <element name="C3" library="resistor" library_urn="urn:adsk.eagle:library:348" package="C0603" package3d_urn="urn:adsk.eagle:package:23616/2" value="0.1u" x="65.532" y="12.573" smashed="yes"/>
 <element name="R10" library="resistor" library_urn="urn:adsk.eagle:library:348" package="R0603" package3d_urn="urn:adsk.eagle:package:23555/3" value="470" x="65.532" y="16.256" smashed="yes"/>
-<element name="FIX_LED" library="LED" library_urn="urn:adsk.eagle:library:11396303" package="LED-0603" package3d_urn="urn:adsk.eagle:package:10893503/2" value="HSMH-C190" x="65.659" y="19.304" smashed="yes" rot="R180">
+<element name="LED5" library="LED" library_urn="urn:adsk.eagle:library:11396303" package="LED-0603" package3d_urn="urn:adsk.eagle:package:10893503/2" value="HSMH-C190" x="65.659" y="19.304" smashed="yes" rot="R180">
 <attribute name="CREATED_BY" value="PCBLayout.com" x="65.659" y="19.304" size="1.778" layer="27" rot="R180" display="off"/>
 <attribute name="DIGIKEY_PART_NUMBER" value="516-1420-1-ND" x="65.659" y="19.304" size="1.778" layer="27" rot="R180" display="off"/>
 <attribute name="MANUFACTURER" value="Broadcom Limited" x="65.659" y="19.304" size="1.778" layer="27" rot="R180" display="off"/>
@@ -3342,7 +3345,7 @@ design rules under a new name.</description>
 <attribute name="PACKAGE" value="0603" x="65.659" y="19.304" size="1.778" layer="27" rot="R180" display="off"/>
 </element>
 <element name="C4" library="resistor" library_urn="urn:adsk.eagle:library:348" package="C0603" package3d_urn="urn:adsk.eagle:package:23616/2" value="10 u" x="11.43" y="37.719" smashed="yes"/>
-<element name="R11" library="resistor" library_urn="urn:adsk.eagle:library:348" package="R0603" package3d_urn="urn:adsk.eagle:package:23555/3" value="470 Ohm" x="60.96" y="40.64" smashed="yes" rot="R180"/>
+<element name="R11" library="resistor" library_urn="urn:adsk.eagle:library:348" package="R0603" package3d_urn="urn:adsk.eagle:package:23555/3" value="82 Ohm" x="60.96" y="40.64" smashed="yes" rot="R180"/>
 <element name="C5" library="rcl" library_urn="urn:adsk.eagle:library:334" package="C0603" package3d_urn="urn:adsk.eagle:package:23616/2" value="100n" x="11.43" y="44.704" smashed="yes" rot="R180">
 <attribute name="POPULARITY" value="37" x="11.43" y="44.704" size="1.778" layer="27" rot="R180" display="off"/>
 <attribute name="SPICEPREFIX" value="C" x="11.43" y="44.704" size="1.778" layer="27" rot="R180" display="off"/>
@@ -3369,30 +3372,30 @@ design rules under a new name.</description>
 <attribute name="MPN" value="61300311121" x="21.59" y="5.08" size="1.778" layer="27" rot="R270" display="off"/>
 <attribute name="NAME" x="21.59" y="10.668" size="1.27" layer="25" rot="R180"/>
 </element>
-<element name="PWR_LED1" library="LED" library_urn="urn:adsk.eagle:library:11396303" package="LED-0603" package3d_urn="urn:adsk.eagle:package:10893503/2" value="HSMH-C190" x="64.77" y="35.56" smashed="yes" rot="R180">
-<attribute name="CREATED_BY" value="PCBLayout.com" x="64.77" y="29.21" size="1.778" layer="27" rot="R180" display="off"/>
-<attribute name="DIGIKEY_PART_NUMBER" value="516-1420-1-ND" x="64.77" y="29.21" size="1.778" layer="27" rot="R180" display="off"/>
-<attribute name="MANUFACTURER" value="Broadcom Limited" x="64.77" y="29.21" size="1.778" layer="27" rot="R180" display="off"/>
-<attribute name="MPN" value="HSMH-C190" x="64.77" y="29.21" size="1.778" layer="27" rot="R180" display="off"/>
-<attribute name="PACKAGE" value="0603" x="64.77" y="29.21" size="1.778" layer="27" rot="R180" display="off"/>
+<element name="LED3" library="LED" library_urn="urn:adsk.eagle:library:11396303" package="LED-0603" package3d_urn="urn:adsk.eagle:package:10893503/2" value="HSMH-C190" x="64.77" y="35.56" smashed="yes">
+<attribute name="CREATED_BY" value="PCBLayout.com" x="64.77" y="41.91" size="1.778" layer="27" display="off"/>
+<attribute name="DIGIKEY_PART_NUMBER" value="516-1420-1-ND" x="64.77" y="41.91" size="1.778" layer="27" display="off"/>
+<attribute name="MANUFACTURER" value="Broadcom Limited" x="64.77" y="41.91" size="1.778" layer="27" display="off"/>
+<attribute name="MPN" value="HSMH-C190" x="64.77" y="41.91" size="1.778" layer="27" display="off"/>
+<attribute name="PACKAGE" value="0603" x="64.77" y="41.91" size="1.778" layer="27" display="off"/>
 </element>
-<element name="R1" library="resistor" library_urn="urn:adsk.eagle:library:348" package="R0603" package3d_urn="urn:adsk.eagle:package:23555/3" value="470 Ohm" x="60.96" y="35.56" smashed="yes" rot="R180"/>
-<element name="PWR_LED2" library="LED" library_urn="urn:adsk.eagle:library:11396303" package="LED-0603" package3d_urn="urn:adsk.eagle:package:10893503/2" value="HSMH-C190" x="64.77" y="38.1" smashed="yes" rot="R180">
-<attribute name="CREATED_BY" value="PCBLayout.com" x="64.77" y="31.75" size="1.778" layer="27" rot="R180" display="off"/>
-<attribute name="DIGIKEY_PART_NUMBER" value="516-1420-1-ND" x="64.77" y="31.75" size="1.778" layer="27" rot="R180" display="off"/>
-<attribute name="MANUFACTURER" value="Broadcom Limited" x="64.77" y="31.75" size="1.778" layer="27" rot="R180" display="off"/>
-<attribute name="MPN" value="HSMH-C190" x="64.77" y="31.75" size="1.778" layer="27" rot="R180" display="off"/>
-<attribute name="PACKAGE" value="0603" x="64.77" y="31.75" size="1.778" layer="27" rot="R180" display="off"/>
+<element name="R1" library="resistor" library_urn="urn:adsk.eagle:library:348" package="R0603" package3d_urn="urn:adsk.eagle:package:23555/3" value="82 Ohm" x="60.96" y="35.56" smashed="yes" rot="R180"/>
+<element name="LED2" library="LED" library_urn="urn:adsk.eagle:library:11396303" package="LED-0603" package3d_urn="urn:adsk.eagle:package:10893503/2" value="HSMH-C190" x="64.77" y="38.1" smashed="yes">
+<attribute name="CREATED_BY" value="PCBLayout.com" x="64.77" y="44.45" size="1.778" layer="27" display="off"/>
+<attribute name="DIGIKEY_PART_NUMBER" value="516-1420-1-ND" x="64.77" y="44.45" size="1.778" layer="27" display="off"/>
+<attribute name="MANUFACTURER" value="Broadcom Limited" x="64.77" y="44.45" size="1.778" layer="27" display="off"/>
+<attribute name="MPN" value="HSMH-C190" x="64.77" y="44.45" size="1.778" layer="27" display="off"/>
+<attribute name="PACKAGE" value="0603" x="64.77" y="44.45" size="1.778" layer="27" display="off"/>
 </element>
-<element name="R2" library="resistor" library_urn="urn:adsk.eagle:library:348" package="R0603" package3d_urn="urn:adsk.eagle:package:23555/3" value="470 Ohm" x="60.96" y="38.1" smashed="yes" rot="R180"/>
-<element name="PWR_LED3" library="LED" library_urn="urn:adsk.eagle:library:11396303" package="LED-0603" package3d_urn="urn:adsk.eagle:package:10893503/2" value="HSMH-C190" x="3.81" y="16.002" smashed="yes" rot="R270">
-<attribute name="CREATED_BY" value="PCBLayout.com" x="10.16" y="16.002" size="1.778" layer="27" rot="R270" display="off"/>
-<attribute name="DIGIKEY_PART_NUMBER" value="516-1420-1-ND" x="10.16" y="16.002" size="1.778" layer="27" rot="R270" display="off"/>
-<attribute name="MANUFACTURER" value="Broadcom Limited" x="10.16" y="16.002" size="1.778" layer="27" rot="R270" display="off"/>
-<attribute name="MPN" value="HSMH-C190" x="10.16" y="16.002" size="1.778" layer="27" rot="R270" display="off"/>
-<attribute name="PACKAGE" value="0603" x="10.16" y="16.002" size="1.778" layer="27" rot="R270" display="off"/>
+<element name="R2" library="resistor" library_urn="urn:adsk.eagle:library:348" package="R0603" package3d_urn="urn:adsk.eagle:package:23555/3" value="82 Ohm" x="60.96" y="38.1" smashed="yes" rot="R180"/>
+<element name="LED1" library="LED" library_urn="urn:adsk.eagle:library:11396303" package="LED-0603" package3d_urn="urn:adsk.eagle:package:10893503/2" value="HSMH-C190" x="3.81" y="15.748" smashed="yes" rot="R90">
+<attribute name="CREATED_BY" value="PCBLayout.com" x="-2.54" y="15.748" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="DIGIKEY_PART_NUMBER" value="516-1420-1-ND" x="-2.54" y="15.748" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="MANUFACTURER" value="Broadcom Limited" x="-2.54" y="15.748" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="MPN" value="HSMH-C190" x="-2.54" y="15.748" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="PACKAGE" value="0603" x="-2.54" y="15.748" size="1.778" layer="27" rot="R90" display="off"/>
 </element>
-<element name="R12" library="resistor" library_urn="urn:adsk.eagle:library:348" package="R0603" package3d_urn="urn:adsk.eagle:package:23555/3" value="470 Ohm" x="3.81" y="11.176" smashed="yes" rot="R270"/>
+<element name="R12" library="resistor" library_urn="urn:adsk.eagle:library:348" package="R0603" package3d_urn="urn:adsk.eagle:package:23555/3" value="82 Ohm" x="3.81" y="11.176" smashed="yes" rot="R270"/>
 <element name="C6" library="rcl" library_urn="urn:adsk.eagle:library:334" package="C0603" package3d_urn="urn:adsk.eagle:package:23616/2" value="100n" x="11.43" y="48.26" smashed="yes" rot="R180">
 <attribute name="POPULARITY" value="37" x="11.43" y="48.26" size="1.778" layer="27" rot="R180" display="off"/>
 <attribute name="SPICEPREFIX" value="C" x="11.43" y="48.26" size="1.778" layer="27" rot="R180" display="off"/>
@@ -3483,10 +3486,10 @@ design rules under a new name.</description>
 <contactref element="U3" pad="15"/>
 <contactref element="U3" pad="16"/>
 <polygon width="0.1524" layer="1">
-<vertex x="0" y="52.07"/>
-<vertex x="0" y="0"/>
-<vertex x="68.58" y="0"/>
-<vertex x="68.58" y="52.07"/>
+<vertex x="-1.27" y="52.07"/>
+<vertex x="-1.27" y="-2.54"/>
+<vertex x="69.85" y="-2.54"/>
+<vertex x="69.85" y="52.07"/>
 </polygon>
 <wire x1="19.13" y1="32.94" x2="19.13" y2="34.94" width="0.1524" layer="1"/>
 <contactref element="C5" pad="2"/>
@@ -3562,10 +3565,10 @@ design rules under a new name.</description>
 <contactref element="U3" pad="13"/>
 <contactref element="C4" pad="1"/>
 <polygon width="0.1524" layer="16">
-<vertex x="0" y="53.34"/>
-<vertex x="0" y="0"/>
-<vertex x="68.58" y="0"/>
-<vertex x="68.58" y="53.34"/>
+<vertex x="-2.54" y="53.34"/>
+<vertex x="-2.54" y="-1.27"/>
+<vertex x="71.12" y="-1.27"/>
+<vertex x="71.12" y="53.34"/>
 </polygon>
 <contactref element="U1" pad="6"/>
 <contactref element="U1" pad="10"/>
@@ -3573,7 +3576,6 @@ design rules under a new name.</description>
 <contactref element="U1" pad="1"/>
 <contactref element="R4" pad="1"/>
 <contactref element="R3" pad="1"/>
-<contactref element="PWR_LED3" pad="C"/>
 <contactref element="C6" pad="1"/>
 <contactref element="U2" pad="7"/>
 <contactref element="U2" pad="8"/>
@@ -3648,15 +3650,16 @@ design rules under a new name.</description>
 <wire x1="61.348" y1="13.316" x2="60.96" y2="13.316" width="0.1524" layer="1"/>
 <wire x1="60.96" y1="13.316" x2="60.96" y2="10.16" width="0.1524" layer="1"/>
 <via x="60.96" y="10.16" extent="1-16" drill="0.35"/>
-<wire x1="3.81" y1="16.737" x2="6.35" y2="16.737" width="0.1524" layer="1"/>
-<wire x1="6.35" y1="16.737" x2="6.35" y2="16.51" width="0.1524" layer="1"/>
-<via x="6.35" y="16.51" extent="1-16" drill="0.35"/>
 <wire x1="18.55" y1="45.215" x2="18.55" y2="44.7" width="0.1524" layer="1"/>
 <wire x1="18.55" y1="44.7" x2="18.285" y2="44.7" width="0.1524" layer="1"/>
 <wire x1="19.815" y1="44.2" x2="18.6886" y2="44.2" width="0.1524" layer="1"/>
 <wire x1="18.6886" y1="44.2" x2="18.6886" y2="44.6186" width="0.1524" layer="1"/>
 <wire x1="18.6886" y1="44.6186" x2="18.55" y2="44.6186" width="0.1524" layer="1"/>
 <wire x1="18.55" y1="44.6186" x2="18.55" y2="44.7" width="0.1524" layer="1"/>
+<contactref element="LED1" pad="A"/>
+<wire x1="3.81" y1="16.483" x2="3.81" y2="17.78" width="0.1524" layer="1"/>
+<wire x1="3.81" y1="17.78" x2="5.08" y2="17.78" width="0.1524" layer="1"/>
+<via x="5.08" y="17.78" extent="1-16" drill="0.35"/>
 </signal>
 <signal name="BMP388_INT">
 <contactref element="U1" pad="7"/>
@@ -3790,13 +3793,13 @@ design rules under a new name.</description>
 </signal>
 <signal name="N$3">
 <contactref element="R10" pad="2"/>
-<contactref element="FIX_LED" pad="C"/>
+<contactref element="LED5" pad="C"/>
 <wire x1="66.394" y1="19.304" x2="66.394" y2="16.268" width="0.1524" layer="1"/>
 <wire x1="66.394" y1="16.268" x2="66.382" y2="16.256" width="0.1524" layer="1"/>
 </signal>
 <signal name="N$4">
 <contactref element="U4" pad="P$5"/>
-<contactref element="FIX_LED" pad="A"/>
+<contactref element="LED5" pad="A"/>
 <wire x1="61.348" y1="19.316" x2="64.912" y2="19.316" width="0.1524" layer="1"/>
 <wire x1="64.912" y1="19.316" x2="64.924" y2="19.304" width="0.1524" layer="1"/>
 </signal>
@@ -3858,21 +3861,21 @@ design rules under a new name.</description>
 <contactref element="X1" pad="1"/>
 <contactref element="J2" pad="2"/>
 <contactref element="J3" pad="2"/>
-<wire x1="26.67" y1="2.54" x2="39.37" y2="2.54" width="0.6096" layer="1"/>
-<wire x1="39.37" y1="2.54" x2="40.5892" y2="1.3208" width="0.6096" layer="1"/>
-<wire x1="48.3" y1="1.3208" x2="48.3" y2="5.08" width="0.6096" layer="1"/>
-<wire x1="48.3" y1="5.08" x2="48.3" y2="5.461" width="0.6096" layer="1"/>
-<wire x1="40.5892" y1="1.3208" x2="48.3" y2="1.3208" width="0.6096" layer="1"/>
-<wire x1="13.97" y1="5.08" x2="17.78" y2="5.08" width="0.6096" layer="1"/>
-<wire x1="17.78" y1="5.08" x2="21.59" y2="5.08" width="0.6096" layer="1"/>
-<wire x1="21.59" y1="5.08" x2="24.13" y2="5.08" width="0.6096" layer="1"/>
-<wire x1="24.13" y1="5.08" x2="26.67" y2="2.54" width="0.6096" layer="1"/>
 <contactref element="TP1" pad="TP"/>
 <wire x1="57.15" y1="5.08" x2="55.88" y2="5.08" width="0.1524" layer="1"/>
 <wire x1="55.88" y1="5.08" x2="55.88" y2="8.89" width="0.1524" layer="1"/>
 <wire x1="55.88" y1="8.89" x2="48.26" y2="8.89" width="0.1524" layer="1"/>
-<wire x1="48.26" y1="8.89" x2="48.26" y2="5.08" width="0.1524" layer="1"/>
-<wire x1="48.26" y1="5.08" x2="48.3" y2="5.08" width="0.1524" layer="1"/>
+<wire x1="26.67" y1="2.54" x2="24.13" y2="5.08" width="1.016" layer="1"/>
+<wire x1="24.13" y1="5.08" x2="21.59" y2="5.08" width="1.016" layer="1"/>
+<wire x1="17.78" y1="5.08" x2="21.59" y2="5.08" width="1.016" layer="1"/>
+<wire x1="17.78" y1="5.08" x2="13.97" y2="5.08" width="1.016" layer="1"/>
+<wire x1="26.67" y1="2.54" x2="39.37" y2="2.54" width="1.016" layer="1"/>
+<wire x1="39.37" y1="2.54" x2="40.894" y2="1.016" width="1.016" layer="1"/>
+<wire x1="40.894" y1="1.016" x2="44.196" y2="1.016" width="1.016" layer="1"/>
+<wire x1="44.196" y1="1.016" x2="48.3" y2="5.12" width="1.016" layer="1"/>
+<wire x1="48.3" y1="5.12" x2="48.3" y2="5.461" width="1.016" layer="1"/>
+<wire x1="48.26" y1="8.89" x2="48.26" y2="5.16" width="0.1524" layer="1"/>
+<wire x1="48.26" y1="5.16" x2="48.3" y2="5.12" width="0.1524" layer="1"/>
 </signal>
 <signal name="SERVO3">
 <contactref element="U$1" pad="23/A9"/>
@@ -3907,11 +3910,7 @@ design rules under a new name.</description>
 </signal>
 <signal name="RADIO_LED">
 <contactref element="U$1" pad="5"/>
-<contactref element="PWR_LED" pad="C"/>
-<wire x1="65.505" y1="40.64" x2="67.1658" y2="40.64" width="0.1524" layer="1"/>
-<via x="67.1658" y="40.64" extent="1-16" drill="0.35"/>
-<wire x1="67.1658" y1="40.64" x2="55.9977125" y2="40.64" width="0.1524" layer="16"/>
-<wire x1="55.9977125" y1="40.64" x2="55.7775125" y2="40.4198" width="0.1524" layer="16"/>
+<wire x1="55.93885625" y1="40.58114375" x2="55.7775125" y2="40.4198" width="0.1524" layer="16"/>
 <wire x1="55.7775125" y1="40.4198" x2="54.4584875" y2="40.4198" width="0.1524" layer="16"/>
 <wire x1="54.4584875" y1="40.4198" x2="54.2382875" y2="40.64" width="0.1524" layer="16"/>
 <via x="49.53" y="40.64" extent="1-16" drill="0.35"/>
@@ -3919,10 +3918,14 @@ design rules under a new name.</description>
 <wire x1="49.53" y1="17.78" x2="41.91" y2="17.78" width="0.1524" layer="16"/>
 <wire x1="54.2382875" y1="40.64" x2="49.53" y2="40.64" width="0.1524" layer="16"/>
 <wire x1="49.53" y1="40.64" x2="49.53" y2="17.78" width="0.1524" layer="1"/>
+<contactref element="LED4" pad="A"/>
+<wire x1="65.505" y1="40.64" x2="67.1658" y2="40.64" width="0.1524" layer="1"/>
+<via x="67.1658" y="40.64" extent="1-16" drill="0.35"/>
+<wire x1="67.1658" y1="40.64" x2="67.10694375" y2="40.58114375" width="0.1524" layer="16"/>
+<wire x1="67.10694375" y1="40.58114375" x2="55.93885625" y2="40.58114375" width="0.1524" layer="16"/>
 </signal>
 <signal name="ERR_LED">
 <contactref element="U$1" pad="4"/>
-<contactref element="PWR_LED2" pad="C"/>
 <wire x1="41.91" y1="15.24" x2="50.8" y2="15.24" width="0.1524" layer="16"/>
 <via x="50.8" y="15.24" extent="1-16" drill="0.35"/>
 <wire x1="50.8" y1="15.24" x2="50.8" y2="18.098075" width="0.1524" layer="1"/>
@@ -3930,14 +3933,14 @@ design rules under a new name.</description>
 <wire x1="50.7558" y1="18.142275" x2="50.7558" y2="20.289725" width="0.1524" layer="1"/>
 <wire x1="50.7558" y1="20.289725" x2="50.8" y2="20.333925" width="0.1524" layer="1"/>
 <via x="50.8" y="38.1" extent="1-16" drill="0.35"/>
-<wire x1="50.8" y1="38.1" x2="67.1658" y2="38.1" width="0.1524" layer="16"/>
-<via x="67.1658" y="38.1" extent="1-16" drill="0.35"/>
-<wire x1="67.1658" y1="38.1" x2="65.505" y2="38.1" width="0.1524" layer="1"/>
 <wire x1="50.8" y1="20.333925" x2="50.8" y2="38.1" width="0.1524" layer="1"/>
+<contactref element="LED2" pad="A"/>
+<wire x1="65.505" y1="38.1" x2="67.1658" y2="38.1" width="0.1524" layer="1"/>
+<via x="67.1658" y="38.1" extent="1-16" drill="0.35"/>
+<wire x1="67.1658" y1="38.1" x2="50.8" y2="38.1" width="0.1524" layer="16"/>
 </signal>
 <signal name="STATUS_LED">
 <contactref element="U$1" pad="3"/>
-<contactref element="PWR_LED1" pad="C"/>
 <wire x1="41.91" y1="12.7" x2="57.15" y2="12.7" width="0.1524" layer="16"/>
 <wire x1="57.15" y1="12.7" x2="57.15" y2="13.97" width="0.1524" layer="16"/>
 <via x="57.15" y="13.97" extent="1-16" drill="0.35"/>
@@ -3946,30 +3949,12 @@ design rules under a new name.</description>
 <wire x1="59.69" y1="20.32" x2="59.69" y2="21.59" width="0.1524" layer="1"/>
 <via x="59.69" y="21.59" extent="1-16" drill="0.35"/>
 <wire x1="59.69" y1="21.59" x2="59.69" y2="30.48" width="0.1524" layer="16"/>
-<wire x1="65.505" y1="35.56" x2="65.505" y2="31.215" width="0.1524" layer="1"/>
-<wire x1="65.505" y1="31.215" x2="64.77" y2="30.48" width="0.1524" layer="1"/>
 <wire x1="59.69" y1="30.48" x2="64.77" y2="30.48" width="0.1524" layer="16"/>
 <via x="64.77" y="30.48" extent="1-16" drill="0.35"/>
-</signal>
-<signal name="N$7">
-<contactref element="PWR_LED3" pad="A"/>
-<contactref element="R12" pad="1"/>
-<wire x1="3.81" y1="15.267" x2="3.81" y2="12.026" width="0.1524" layer="1"/>
-</signal>
-<signal name="N$8">
-<contactref element="PWR_LED2" pad="A"/>
-<contactref element="R2" pad="1"/>
-<wire x1="64.035" y1="38.1" x2="61.81" y2="38.1" width="0.1524" layer="1"/>
-</signal>
-<signal name="N$9">
-<contactref element="PWR_LED1" pad="A"/>
-<contactref element="R1" pad="1"/>
-<wire x1="61.81" y1="35.56" x2="64.035" y2="35.56" width="0.1524" layer="1"/>
-</signal>
-<signal name="N$10">
-<contactref element="PWR_LED" pad="A"/>
-<contactref element="R11" pad="1"/>
-<wire x1="61.81" y1="40.64" x2="64.035" y2="40.64" width="0.1524" layer="1"/>
+<contactref element="LED3" pad="A"/>
+<wire x1="67.31" y1="35.56" x2="65.505" y2="35.56" width="0.1524" layer="1"/>
+<wire x1="67.31" y1="33.02" x2="67.31" y2="35.56" width="0.1524" layer="1"/>
+<wire x1="64.77" y1="30.48" x2="67.31" y2="33.02" width="0.1524" layer="1"/>
 </signal>
 <signal name="RADIO_CS">
 <contactref element="U3" pad="5"/>
@@ -3980,6 +3965,26 @@ design rules under a new name.</description>
 <wire x1="3.81" y1="39.37" x2="3.81" y2="35.02" width="0.1524" layer="1"/>
 <wire x1="3.81" y1="35.02" x2="3.73" y2="34.94" width="0.1524" layer="1"/>
 </signal>
+<signal name="N$6">
+<contactref element="LED1" pad="C"/>
+<contactref element="R12" pad="1"/>
+<wire x1="3.81" y1="12.026" x2="3.81" y2="15.013" width="0.1524" layer="1"/>
+</signal>
+<signal name="N$9">
+<contactref element="LED4" pad="C"/>
+<contactref element="R11" pad="1"/>
+<wire x1="61.81" y1="40.64" x2="64.035" y2="40.64" width="0.1524" layer="1"/>
+</signal>
+<signal name="N$10">
+<contactref element="LED3" pad="C"/>
+<contactref element="R1" pad="1"/>
+<wire x1="61.81" y1="35.56" x2="64.035" y2="35.56" width="0.1524" layer="1"/>
+</signal>
+<signal name="N$7">
+<contactref element="LED2" pad="C"/>
+<contactref element="R2" pad="1"/>
+<wire x1="61.81" y1="38.1" x2="64.035" y2="38.1" width="0.1524" layer="1"/>
+</signal>
 </signals>
 <mfgpreviewcolors>
 <mfgpreviewcolor name="soldermaskcolor" color="0xC8008000"/>
@@ -3988,33 +3993,6 @@ design rules under a new name.</description>
 <mfgpreviewcolor name="coppercolor" color="0xFFFFBF00"/>
 <mfgpreviewcolor name="substratecolor" color="0xFF786E46"/>
 </mfgpreviewcolors>
-<errors>
-<approved hash="5,1,13eca684019dce9c"/>
-<approved hash="5,1,cd12b6c439ce02a3"/>
-<approved hash="5,1,5b5b78a955e0a361"/>
-<approved hash="5,1,d930f8a455e8a10f"/>
-<approved hash="5,1,571678ab55faaf34"/>
-<approved hash="5,1,f8ecb6c4002a3755"/>
-<approved hash="5,1,2be761c40a2a395e"/>
-<approved hash="5,1,4c657b447a2a345c"/>
-<approved hash="5,1,56fb1cc4042a3742"/>
-<approved hash="5,1,7f793644002a3040"/>
-<approved hash="5,1,81ffcfc4022a3546"/>
-<approved hash="5,1,fc07d3a45bfaaf25"/>
-<approved hash="5,1,722153ab5be8a11e"/>
-<approved hash="5,1,f04ad3a65be0a370"/>
-<approved hash="5,1,b401cfc43bce00b0"/>
-<approved hash="5,1,63051cc43dce02b4"/>
-<approved hash="5,1,799b7b4443ce01aa"/>
-<approved hash="5,1,349f48443dce01ae"/>
-<approved hash="5,1,d32bc08eb2c0cf19"/>
-<approved hash="5,1,9f44f547516b1c4c"/>
-<approved hash="5,1,98652684059fc565"/>
-<approved hash="5,1,6960d784079fc760"/>
-<approved hash="5,1,9e947aa4a562bc4a"/>
-<approved hash="5,1,c31780b52a4717a5"/>
-<approved hash="5,1,85f586594f01b15f"/>
-</errors>
 </board>
 </drawing>
 <compatibility>
