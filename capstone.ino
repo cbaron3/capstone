@@ -32,6 +32,7 @@ Servo left_elevon, right_elevon, rudder;
 
 // Radio usage
 #include "Radio.hpp"
+aero::def::Status_t status;
 RH_RF95 radio {RADIO_CS, RADIO_INT};
 
 // LED usage
@@ -74,14 +75,16 @@ mode_type mode = DEFAULT_MODE;
 volatile aero::def::ParsedMessage_t* msg; // Poitner to last received message
 volatile bool new_msg = false;            // Flag to notify that a new message has been arrived
 
+// Message handler for building a response
+volatile aero::Message message_handler;
+
+
 void thread_radio() {
   // Wait so thread does not start right away
   delay(THREAD_DELAY_MS);
   DEBUG_PRINTLN("Radio thread started");
 
-  // Message handler for building a response
-  aero::Message message_handler;
-
+  
   unsigned long prev = 0, curr = 0;
   
   // Thread loop
@@ -369,6 +372,122 @@ void thread_debug() {
   }
 }
 
+void elevons_up() {
+  // TODO: 
+}
+
+void elevons_level() {
+  // TODO: 
+}
+
+void to_safety_mode(void) {
+  // Cancel all motor threads
+  THREADS::suspend(AUTO_ID);
+  THREADS::suspend(SETPOINT_ID);
+  
+  THREADS::suspend(MANUAL_ID);
+  RECEIVER::terminate_interrupts();
+
+  elevons_up();
+
+  // Update mode
+  mode = MODE_SAFETY;
+  LEDS::off(MODE_LED);
+}
+
+void to_auto_mode(void) {
+  THREADS::restart(AUTO_ID);
+  THREADS::restart(SETPOINT_ID);
+
+  THREADS::suspend(MANUAL_ID);
+  RECEIVER::terminate_interrupts();
+
+  mode = MODE_AUTO;
+  LEDS::off(MODE_LED);
+}
+
+void to_manual_mode(void) {
+  THREADS::suspend(AUTO_ID);
+  THREADS::suspend(SETPOINT_ID);
+
+  RECEIVER::start_interrupts();
+  THREADS::restart(MANUAL_ID);
+
+  mode = MODE_MANUAL;
+  LEDS::on(MODE_LED);
+}
+
+void to_idle_mode(void) {
+  THREADS::suspend(AUTO_ID);
+  THREADS::suspend(SETPOINT_ID);
+
+  THREADS::suspend(MANUAL_ID);
+  RECEIVER::terminate_interrupts();
+
+  elevons_level();
+
+  mode = MODE_IDLE;
+  LEDS::off(MODE_LED);
+}
+
+void glider_state_machine(uint8_t command) {
+  using namespace aero;
+  using namespace aero::def;
+
+  switch(mode) {
+    // In IDLE mode, sensors are being polled. Can move into AUTO state when Pitch:5 (ENGAGE/DISENGAGE)
+    case MODE_IDLE: {
+      if(command == CMD_TOGGLE_ENGAGE) {
+        bit::set(status.state, STATE_ENGAGED_MODE);
+        message_handler.add_status(status);
+        to_auto_mode();
+      }
+    } break;
+
+    // In AUTO mode, sensors are being polled and elevons react to orientation.
+    // Can move into
+      // IDLE when Pitch:5 (ENGAGE/DISENGAGE). Stop auto thread, elevons level
+      // MANUAL when Pitch:7 (MODE SWAP). Stop auto thread, start interrupts, start manual thread
+      // SAFETY when Pitch:0/1 dependeing on device. Stop auto thread, elevons up
+    case MODE_AUTO: {
+      if(command == CMD_TOGGLE_ENGAGE) {
+        to_idle_mode();
+      } else if(command == CMD_MODE_SWAP) {
+        to_manual_mode();
+      } else if( (command == CMD_PITCH_UP_GLIDER1 && THIS_DEVICE == ID::G1) || 
+                 (command == CMD_PITCH_UP_GLIDER2 && THIS_DEVICE == ID::G2) ) {
+        to_safety_mode();
+      }
+
+    } break;
+
+    // In MANUAL mode, sensors are being polled but elevons react to receiver inputs.
+    // Can move into
+      // AUTO when Pitch:7 (MODE SWAP). Stop manual thread, stop interrupts, start auto thread
+      // SAFETY when Pitch:0/1 depending on device. Stop manual thread, stop interrupts, elevons up
+    case MODE_MANUAL: {
+      if(command == CMD_MODE_SWAP) {
+        to_auto_mode();
+      } else if( (command == CMD_PITCH_UP_GLIDER1 && THIS_DEVICE == ID::G1) || 
+                 (command == CMD_PITCH_UP_GLIDER2 && THIS_DEVICE == ID::G2) ) {
+        to_safety_mode();
+      }
+
+    } break;
+
+    // In SAFETY mode, sensors are being polled. Elevons are up and will not move. 
+    case MODE_SAFETY: {
+      // Do nothing
+    } break;
+
+    // Unrecognized mode, state machine should never reach here
+    default: {
+      bit::set(status.state, STATE_UNDEFINED_MODE);
+      message_handler.add_status(status);
+    } break;
+  }
+}
+
 /**
  * @brief Parse a message for commands and take the appropriate action
  */
@@ -379,44 +498,35 @@ void parse_cmds(void) {
   // If we received command information
   if(msg->cmds() != NULL) {
 
-    // Check for the pitch bit
-    if(aero::bit::read(msg->cmds()->pitch, 0)) {
-      DEBUG_PRINTLN("Pitch Command");
+    /*
+     * PITCH:0 - Glider 1 Pitch Up. Only if THIS_DEVICE == aero::def::G1
+     * PITCH:1 - Glider 2 Pitch Up. Only if THIS_DEVICE == aero::def::G2
+     * PITCH:6 - Test Comms; Send back empty message aka do nothing on parse. Could add data
+     * PITCH:7 - Auto/Manual Mode Swap. 
+     */
+    
+    using namespace aero;
+    using namespace aero::def;
+
+    // Extract bit fields
+    uint8_t pitch_field = msg->cmds()->pitch;
+
+    // If the command is to initiate a comms test, ignore state. Else pass along command to state machine
+    if(pitch_field == CMD_COMMS_TEST) {
+        DEBUG_PRINTLN("Comms Test Received");
+
+        if(gps_data.fix == true) {
+          bit::set(status.state, STATE_GPS_FIX);
+        } else {
+          bit::clear(status.state, STATE_GPS_FIX);
+        }
+
+        message_handler.add_status(status);
+    } else {
+      glider_state_machine(pitch_field);
     }
-
-    if(aero::bit::read(msg->cmds()->pitch, 7)) {
-      DEBUG_PRINT("Mode Swap Command: ");
-
-      if(mode == MODE_MANUAL) {
-        // Device is currently in manual mode therefore we will swap to auto
-        DEBUG_PRINTLN("Changing from manual to auto");
-
-        // If we were in manual mode, stop the manual thread and interrupts; start the setpoint and auto thread
-        THREADS::suspend(MANUAL_ID);
-        RECEIVER::terminate_interrupts();
-        
-        THREADS::restart(AUTO_ID);
-        THREADS::restart(SETPOINT_ID);
-        
-        // Assign mode
-        mode = MODE_AUTO;
-        LEDS::off(MODE_LED);
-      } else {
-        // Device is currently in auto mode therefore we will swap to manual
-        DEBUG_PRINTLN("Changing from auto to manual");
-
-        // If we were in auto mode, stop the auto and setpoint thread; start the manual mode thread and interrupts
-        THREADS::suspend(AUTO_ID);
-        THREADS::suspend(SETPOINT_ID);
-
-        RECEIVER::start_interrupts();
-        THREADS::restart(MANUAL_ID);
-
-        // Assign mode
-        mode = MODE_MANUAL;
-        LEDS::on(MODE_LED);
-      }
-    }
+  } else {
+    // No glider commands
   }
 }
 
@@ -512,18 +622,15 @@ void setup() {
   THREADS::ids[MANUAL_ID] = threads.addThread(thread_manual);
 
   // Handle boot mode
+  // NOTE: threads need to be added for suspend/restart to work
   if(mode == MODE_MANUAL) {
     // If we boot in manual mode, immediately suspend the automatic and setpoint threads
-    THREADS::suspend(AUTO_ID);
-    THREADS::suspend(SETPOINT_ID);
-
-    LEDS::on(MODE_LED);
-  } else {
+    to_manual_mode();
+  } else if(mode == MODE_AUTO) {
     // If we boot in auto mode, immediately suspend the manual thread and terminate interrupts
-    THREADS::suspend(MANUAL_ID);
-    RECEIVER::terminate_interrupts();
-
-    LEDS::off(MODE_LED);
+    to_auto_mode();
+  } else {
+    to_idle_mode();
   }
   
   // Thread to monitor CPU activity

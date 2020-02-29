@@ -10,8 +10,18 @@
 
 using Pin = unsigned int;
 
-enum mode_type {MODE_MANUAL = 0, MODE_AUTO = 1};
+enum mode_type {MODE_IDLE = 0, MODE_MANUAL = 1, MODE_AUTO = 2, MODE_SAFETY = 3};
 static constexpr mode_type DEFAULT_MODE = MODE_AUTO;
+
+// Commands
+static constexpr uint8_t CMD_PITCH_UP_GLIDER1 = 0x00; // Glider 1 Emergency Pitch Up; Only if this device is G1.
+static constexpr uint8_t CMD_PITCH_UP_GLIDER2 = 0x01; // Glider 2 Emergency Pitch Up; Only if this device is G2.
+static constexpr uint8_t CMD_TOGGLE_ENGAGE    = 0x05;
+static constexpr uint8_t CMD_COMMS_TEST       = 0x06; // Glider Communications Check. Can also be used to send back data.
+static constexpr uint8_t CMD_MODE_SWAP        = 0x07; // Glider Mode Swap. Auto/Manual mode toggle.
+
+static constexpr uint8_t STATE_GPS_FIX = 0x00; // Bit 0 for GPS fix
+static constexpr uint8_t STATE_UNDEFINED_MODE = 0x1F; // Bit 31 for undefined mode
 
 #define  DEBUG
 // #define  VERBOSE_DEBUG
