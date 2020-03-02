@@ -323,14 +323,28 @@ void thread_setpoint() {
   delay(THREAD_DELAY_MS);
   DEBUG_PRINTLN("Setpoint thread started");
 
+  bool updated = false;
+
+  SETPOINT::Angles plane_angle, to_target_angle;
+
   // Thread loop
   while(true) {
     if(new_gps == true) {
       /* Compute setpoint here */
       
-      // CONTROLLER::roll_setpoint = ...;
-      // CONTROLLER::pitch_setpoint = ...;
-      // CONTROLLER::yaw_setpoint = ...;
+      if(gps_data.fix == true) {
+         updated = SETPOINT::update(gps_data.coord.lat, gps_data.coord.lon, baro_data.delta_altitude);
+
+         if(updated = true){
+            // Get target and plane angles
+            plane_angle = SETPOINT::get_plane_angle();
+            to_target_angle = SETPOINT::get_target_angle();
+
+            // CONTROLLER::roll_setpoint = ...;
+            // CONTROLLER::pitch_setpoint = ...;
+            // CONTROLLER::yaw_setpoint = ...;
+         }
+      }
       
       new_gps = false;
     }
@@ -377,10 +391,16 @@ void thread_debug() {
 
 void elevons_up() {
   // TODO: 
+  left_elevon.write(SAFETY_LEFT_ELEVON_ANGLE);
+  right_elevon.write(SAFETY_RIGHT_ELEVON_ANGLE);
+  rudder.write(SAFETY_RUDDER_ANGLE);
 }
 
 void elevons_level() {
   // TODO: 
+  left_elevon.write(DEFAULT_LEFT_ELEVON_ANGLE);
+  right_elevon.write(DEFAULT_RIGHT_ELEVON_ANGLE);
+  rudder.write(DEFAULT_RUDDER_ANGLE);
 }
 
 void to_safety_mode(void) {
@@ -608,6 +628,9 @@ void setup() {
 
   // Initialize PID controllers
   CONTROLLER::init(roll_control, pitch_control, yaw_control);
+
+  // Initialize Setpoint calculator
+  SETPOINT::init(TARGET_LAT, TARGET_LON, TARGET_ALT);
 
   // Initialize threads and add threads
   THREADS::init();

@@ -10,6 +10,10 @@
 
 using Pin = unsigned int;
 
+static constexpr float TARGET_LAT = 0.0f;
+static constexpr float TARGET_LON = 0.0f;
+static constexpr float TARGET_ALT = 0.0f;
+
 enum mode_type {MODE_IDLE = 0, MODE_MANUAL = 1, MODE_AUTO = 2, MODE_SAFETY = 3};
 static constexpr mode_type DEFAULT_MODE = MODE_AUTO;
 
@@ -23,6 +27,9 @@ static constexpr uint8_t CMD_MODE_SWAP        = 0x07; // Glider Mode Swap. Auto/
 static constexpr uint8_t STATE_GPS_FIX = 0x00; // Bit 0 for GPS fix
 static constexpr uint8_t STATE_ENGAGED_MODE = 0x1E; // Bit 30 for engage mode
 static constexpr uint8_t STATE_UNDEFINED_MODE = 0x1F; // Bit 31 for undefined mode
+
+static constexpr float ALLOWABLE_AZIMUTH_ERROR = 3.0f;
+static constexpr float ALLOWABLE_ELEVATION_ERROR = 3.0f;
 
 #define  DEBUG
 // #define  VERBOSE_DEBUG
@@ -143,6 +150,12 @@ const int DEBUG_ID = 7;
 // For fixed wing trainer
 static constexpr int DEFAULT_LEFT_ELEVON_ANGLE = 90;
 static constexpr int DEFAULT_RIGHT_ELEVON_ANGLE = 90;
+static constexpr int DEFAULT_RUDDER_ANGLE = 90;
+
+static constexpr int SAFETY_LEFT_ELEVON_ANGLE = 135;
+static constexpr int SAFETY_RIGHT_ELEVON_ANGLE = 135;
+static constexpr int SAFETY_RUDDER_ANGLE = 90;
+
 
 /* RECEIVER INPUTS */
 static constexpr Pin RECEIVER1 = 22;   // Left elevon
