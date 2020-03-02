@@ -41,6 +41,9 @@ RH_RF95 radio {RADIO_CS, RADIO_INT};
 // PID controller usage
 #include "Controller.hpp"
 
+// Setpoint calculator
+#include "Setpoint.hpp"
+
 // Controller input
 volatile float new_yaw = 0.0f, new_pitch = 0.0f, new_roll = 0.0f;
 

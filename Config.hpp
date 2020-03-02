@@ -21,6 +21,7 @@ static constexpr uint8_t CMD_COMMS_TEST       = 0x06; // Glider Communications C
 static constexpr uint8_t CMD_MODE_SWAP        = 0x07; // Glider Mode Swap. Auto/Manual mode toggle.
 
 static constexpr uint8_t STATE_GPS_FIX = 0x00; // Bit 0 for GPS fix
+static constexpr uint8_t STATE_ENGAGED_MODE = 0x1E; // Bit 30 for engage mode
 static constexpr uint8_t STATE_UNDEFINED_MODE = 0x1F; // Bit 31 for undefined mode
 
 #define  DEBUG
