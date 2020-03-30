@@ -32,8 +32,9 @@ static constexpr float ALLOWABLE_AZIMUTH_ERROR = 3.0f;
 static constexpr float ALLOWABLE_ELEVATION_ERROR = 3.0f;
 
 #define  DEBUG
-// #define  VERBOSE_DEBUG
-#define  TEST_TRAINER
+//#define  VERBOSE_DEBUG
+//#define  TEST_TRAINER
+#define FINAL_GLIDER
 
 #ifdef DEBUG
     #define DEBUG_PRINT(x) Serial.print(x)
@@ -78,7 +79,7 @@ const String NAMES[] = {"GND", "PLANE", "G1", "G2"};
 
 /* CALIBRATION FLAGS */
 static constexpr bool CALIBRATE_ACCEL = false;
-static constexpr bool CALIBRATE_GYRO = false;
+static constexpr bool CALIBRATE_GYRO = true;
 static constexpr bool CALIBRATE_MAG = false;
 static constexpr bool CALIBRATE_BARO = true;
 
@@ -87,15 +88,15 @@ enum class BOOT_MODE {LED_TEST, LED_TEST_RANDOM};
 static constexpr BOOT_MODE MODE = BOOT_MODE::LED_TEST_RANDOM;
 
 /* PID */
-static constexpr double ROLL_KP = 1.5f, ROLL_KI = 0.00f, ROLL_KD = 0.0f;
-static constexpr double PITCH_KP = 1.5f, PITCH_KI = 0.00f, PITCH_KD = 0.0f;
+static constexpr double ROLL_KP = 3.0f, ROLL_KI = 0.00f, ROLL_KD = 0.0f;
+static constexpr double PITCH_KP = 8.0f, PITCH_KI = 0.00f, PITCH_KD = 0.0f;
 static constexpr double YAW_KP = 1.0f, YAW_KI = 0.00f, YAW_KD = 0.0f;
 
 static constexpr double DEFAULT_ROLL_SETPOINT = 0;
 static constexpr double ROLL_MIN_LIMIT = -90;
 static constexpr double ROLL_MAX_LIMIT = 90;
 
-static constexpr double DEFAULT_PITCH_SETPOINT = 0;
+static constexpr double DEFAULT_PITCH_SETPOINT = 8;
 static constexpr double PITCH_MIN_LIMIT = -90;
 static constexpr double PITCH_MAX_LIMIT = 90;
 
@@ -152,8 +153,8 @@ static constexpr int DEFAULT_LEFT_ELEVON_ANGLE = 90;
 static constexpr int DEFAULT_RIGHT_ELEVON_ANGLE = 90;
 static constexpr int DEFAULT_RUDDER_ANGLE = 90;
 
-static constexpr int SAFETY_LEFT_ELEVON_ANGLE = 135;
-static constexpr int SAFETY_RIGHT_ELEVON_ANGLE = 135;
+static constexpr int SAFETY_LEFT_ELEVON_ANGLE = 180;
+static constexpr int SAFETY_RIGHT_ELEVON_ANGLE = 0;
 static constexpr int SAFETY_RUDDER_ANGLE = 90;
 
 
@@ -167,9 +168,41 @@ static constexpr Pin RECEIVERS[] = {RECEIVER1, RECEIVER2, RECEIVER3};
 static constexpr Pin RADIO_CS = 14;
 static constexpr Pin RADIO_RESET = 15;
 static constexpr Pin RADIO_INT = 16;
-static constexpr float RADIO_FREQ = 915.0f;
+static constexpr float RADIO_FREQ = 905.0f;
 static constexpr int RADIO_POWER = 23;
-static constexpr aero::def::ID THIS_DEVICE = aero::def::ID::G1;
+
+static constexpr aero::def::ID THIS_DEVICE = aero::def::ID::G2;
+
+// Glider 1
+float g1_axb = 0.0f;
+float g1_axs = 0.0f;
+float g1_ayb = 0.0f;
+float g1_ays = 0.0f;
+float g1_azb = 0.0f;
+float g1_azs = 0.0f;
+
+float g1_mxb = 0.0f;
+float g1_mxs = 0.0f;
+float g1_myb = 0.0f;
+float g1_mys = 0.0f;
+float g1_mzb = 0.0f;
+float g1_mzs = 0.0f;
+
+// Glider 2
+float g2_axb = 0.0f;
+float g2_axs = 0.0f;
+float g2_ayb = 0.0f;
+float g2_ays = 0.0f;
+float g2_azb = 0.0f;
+float g2_azs = 0.0f;
+
+float g2_mxb = 0.0f;
+float g2_mxs = 0.0f;
+float g2_myb = 0.0f;
+float g2_mys = 0.0f;
+float g2_mzb = 0.0f;
+float g2_mzs = 0.0f;
+
 
 template <class X, class M, class N, class O, class Q>
 inline X map_generic(X x, M in_min, N in_max, O out_min, Q out_max){
@@ -198,5 +231,5 @@ const unsigned long DEBUG_INTERVAL_MS = 250;
 const unsigned long IMU_SAMPLE_INTERVAL_MS = 20;
 const unsigned long RADIO_INTERVAL_MS = 250;
 const unsigned long MANUAL_INTERVAL_MS = 20;    // 50 HZ Servos
-const unsigned long AUTO_INTERVAL_MS = 20;      // 50 HZ Servos
+const unsigned long AUTO_INTERVAL_MS = 10;      // 50 HZ Servos
 static constexpr int BARO_SAMPLE_INTERVAL_MS = OVER_SAMPLE_PERIODS_MS[OVER_SAMPLE_RATIO];

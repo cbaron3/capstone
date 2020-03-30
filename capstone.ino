@@ -5,7 +5,7 @@
 
 // Testing out the performance of adding an exponential averaging filter
 #include "src/EWMA/Ewma.h"
-Ewma roll_filter(1.0), pitch_filter(1.0), yaw_filter(1.0), left_filter(0.9), right_filter(0.9);
+//Ewma roll_filter(1.0), pitch_filter(1.0), yaw_filter(1.0), left_filter(0.9), right_filter(0.9);
 
 // IMU functionality based on the MPU9250
 #include "IMU.hpp"
@@ -89,6 +89,7 @@ void thread_radio() {
 
   
   unsigned long prev = 0, curr = 0;
+  aero::def::RawMessage_t server_response;
   
   // Thread loop
   while(true) {
@@ -99,13 +100,16 @@ void thread_radio() {
       prev = curr;
 
       // Keep checking for a new radio message
-      if( RADIO::receive(radio, msg) == true) {
-        
+      msg = RADIO::receive(radio);
+      DEBUG_PRINTLN("Checked radio...");
+      if( msg != NULL ) {
+
         // Only accept message if it was addressed to this grlider
         if(msg->m_to == THIS_DEVICE) {
+          DEBUG_PRINTLN("New Radio Message");
 
           // Build response and set flag if response was succesfully sent
-          aero::def::RawMessage_t server_response = message_handler.build(aero::def::ID::G1, aero::def::ID::Gnd);
+          server_response = message_handler.build(THIS_DEVICE, aero::def::ID::Gnd);
 
           LEDS::on(RADIO_LED);
 
@@ -133,7 +137,7 @@ volatile bool new_gps = false;
 
 void thread_gps() {
   // Wait so thread does not start right away
-  delay(THREAD_DELAY_MS);
+  delay(THREAD_DELAY_MS+250);
   DEBUG_PRINTLN("GPS thread started");
 
   unsigned long prev = 0, curr = 0;
@@ -175,7 +179,7 @@ volatile bool new_baro = false;
 
 void thread_i2c() {
   // Wait so thread does not start right away
-  delay(THREAD_DELAY_MS);
+  delay(THREAD_DELAY_MS+500);
   DEBUG_PRINTLN("I2C thread started");
 
   unsigned long prev_imu = 0, curr_imu = 0;
@@ -219,7 +223,7 @@ void thread_i2c() {
 
 void thread_manual() {
   // Wait so thread does not start right away
-  delay(THREAD_DELAY_MS);
+  delay(THREAD_DELAY_MS+750);
   DEBUG_PRINTLN("Manual thread started");
 
   unsigned long prev = 0, curr = 0;
@@ -235,9 +239,9 @@ void thread_manual() {
       // Read data from the receiver
       recv_data = RECEIVER::read();
 
-      ACTUATORS::command_ms(left_elevon, recv_data.recv1);
-      ACTUATORS::command_ms(right_elevon, recv_data.recv2);
-      ACTUATORS::command_ms(rudder, recv_data.recv3);
+      ACTUATORS::command_deg(left_elevon, 90);
+      ACTUATORS::command_deg(right_elevon, 90);
+      ACTUATORS::command_deg(rudder, 90);
     } 
   }
 }
@@ -250,11 +254,12 @@ void thread_manual() {
 volatile bool updated = false;
 
 // Initial position of the elevon motors
+float last_left_output = 0.0f, last_right_output = 0.0f;
 float left_output = 90.0f, right_output = 90.0f, rudder_output = 0.0f;
 
 void thread_auto() {
   // Wait so thread does not start right away
-  delay(THREAD_DELAY_MS);
+  delay(THREAD_DELAY_MS+750);
   DEBUG_PRINTLN("Auto thread started");
 
   unsigned long curr = 0, prev = 0;
@@ -281,36 +286,26 @@ void thread_auto() {
         rudder_target = (-1*CONTROLLER::yaw_output);
       #endif
 
-      // Ramp servo output towards target signal instead of writing the target directly to minimize servos resetting
-      if(left_target > left_output) {
-        left_output += 2.0f;
-      } else if (left_target < left_output) {
-        left_output -= 2.0f;
-      }
-
-      if(right_target > right_output) {
-        right_output += 2.0f;
-      } else if (right_target < right_output) {
-        right_output -= 2.0f;
-      }
-
-      if(rudder_target > rudder_output) {
-        rudder_output += 2.0f;
-      } else if (rudder_target < rudder_output) {
-        rudder_output -= 2.0f;
-      }
-
       // Map output angle to servo millisecond value
-      unsigned long left_signal = (unsigned long) map_generic(left_output, SERVO_MIN_ANGLE, SERVO_MAX_ANGLE, SERVO_MIN_MS, SERVO_MAX_MS) - LEFT_ELEVON_MS_OFFSET;
-      unsigned long right_signal = (unsigned long) map_generic(right_output, SERVO_MIN_ANGLE, SERVO_MAX_ANGLE, SERVO_MIN_MS, SERVO_MAX_MS) - RIGHT_ELEVON_MS_OFFSET;
-      unsigned long rudder_signal = (unsigned long) map_generic(rudder_output, SERVO_MIN_ANGLE, SERVO_MAX_ANGLE, SERVO_MIN_MS, SERVO_MAX_MS);
+      unsigned long left_signal = (unsigned long) map_generic(left_target, SERVO_MIN_ANGLE, SERVO_MAX_ANGLE, SERVO_MIN_MS, SERVO_MAX_MS) - LEFT_ELEVON_MS_OFFSET;
+      unsigned long right_signal = (unsigned long) map_generic(right_target, SERVO_MIN_ANGLE, SERVO_MAX_ANGLE, SERVO_MIN_MS, SERVO_MAX_MS) - RIGHT_ELEVON_MS_OFFSET;
+      // unsigned long rudder_signal = (unsigned long) map_generic(rudder_output, SERVO_MIN_ANGLE, SERVO_MAX_ANGLE, SERVO_MIN_MS, SERVO_MAX_MS);
 
-      ACTUATORS::command_ms(left_elevon, left_signal);
-      ACTUATORS::command_ms(right_elevon, left_signal);
-      ACTUATORS::command_ms(rudder, left_signal);
+      if((int)last_left_output != (int)left_target) {
+        ACTUATORS::command_ms(left_elevon, left_signal);
+        last_left_output = left_target;
+      }
+
+      if((int)last_right_output != (int)right_target) {
+        ACTUATORS::command_ms(right_elevon, right_signal);
+        last_right_output = right_target;
+      }
+      
+      // ACTUATORS::command_ms(right_elevon, right_signal);
+      // ACTUATORS::command_ms(rudder, left_signal);
 
       updated = true;
-    } 
+    } threads.yield();
   }  
 }
 
@@ -320,7 +315,7 @@ void thread_auto() {
 
 void thread_setpoint() {
   // Wait so thread does not start right away
-  delay(THREAD_DELAY_MS);
+  delay(THREAD_DELAY_MS+1000);
   DEBUG_PRINTLN("Setpoint thread started");
 
   bool updated = false;
@@ -328,30 +323,30 @@ void thread_setpoint() {
   SETPOINT::Angles plane_angle, to_target_angle;
 
   // Thread loop
-  while(true) {
-    if(new_gps == true) {
-      /* Compute setpoint here */
-      
-      if(gps_data.fix == true) {
-         updated = SETPOINT::update(gps_data.coord.lat, gps_data.coord.lon, baro_data.delta_altitude);
-
-         if(updated = true){
-            // Get target and plane angles
-            plane_angle = SETPOINT::get_plane_angle();
-            to_target_angle = SETPOINT::get_target_angle();
-
-            // CONTROLLER::roll_setpoint = ...;
-            // CONTROLLER::pitch_setpoint = ...;
-            // CONTROLLER::yaw_setpoint = ...;
-         }
-      }
-      
-      new_gps = false;
-    }
-
-    // Yield current thread if not executing
-    threads.yield();
-  }
+//  while(true) {
+//    if(new_gps == true) {
+//      /* Compute setpoint here */
+//      
+//      if(gps_data.fix == true) {
+//         updated = SETPOINT::update(gps_data.coord.lat, gps_data.coord.lon, baro_data.delta_altitude);
+//
+//         if(updated = true){
+//            // Get target and plane angles
+//            plane_angle = SETPOINT::get_plane_angle();
+//            to_target_angle = SETPOINT::get_target_angle();
+//
+//            // CONTROLLER::roll_setpoint = ...;
+//            // CONTROLLER::pitch_setpoint = ...;
+//            // CONTROLLER::yaw_setpoint = ...;
+//         }
+//      }
+//      
+//      new_gps = false;
+//    }
+//
+//    // Yield current thread if not executing
+//    threads.yield();
+//  }
 }
 
 /**************************************/
@@ -370,14 +365,14 @@ void thread_activity() {
 
 void thread_debug() {
   // Wait so thread does not start right away
-  delay(THREAD_DELAY_MS);
+  delay(THREAD_DELAY_MS-250);
   DEBUG_PRINTLN("Debug thread started");
 
   unsigned long curr = 0, prev = 0;
   while(true) {
     curr = millis();
     if(curr - prev >= DEBUG_INTERVAL_MS) {
-
+      prev = curr;
       IMU::print(imu_data);
       BARO::print(baro_data);
       GPS::print(gps_data);
@@ -390,14 +385,14 @@ void thread_debug() {
 }
 
 void elevons_up() {
-  // TODO: 
+  DEBUG_PRINTLN("Elevons up");
   left_elevon.write(SAFETY_LEFT_ELEVON_ANGLE);
   right_elevon.write(SAFETY_RIGHT_ELEVON_ANGLE);
   rudder.write(SAFETY_RUDDER_ANGLE);
 }
 
 void elevons_level() {
-  // TODO: 
+  DEBUG_PRINTLN("Elevons level");
   left_elevon.write(DEFAULT_LEFT_ELEVON_ANGLE);
   right_elevon.write(DEFAULT_RIGHT_ELEVON_ANGLE);
   rudder.write(DEFAULT_RUDDER_ANGLE);
@@ -457,6 +452,8 @@ void glider_state_machine(uint8_t command) {
   using namespace aero;
   using namespace aero::def;
 
+  DEBUG_PRINT("Command: "); DEBUG_PRINTLN(command);
+
   switch(mode) {
     // In IDLE mode, sensors are being polled. Can move into AUTO state when Pitch:5 (ENGAGE/DISENGAGE)
     case MODE_IDLE: {
@@ -464,6 +461,9 @@ void glider_state_machine(uint8_t command) {
         bit::set(status.state, STATE_ENGAGED_MODE);
         message_handler.add_status(status);
         to_auto_mode();
+      } else if( (1== aero::bit::read(command, CMD_PITCH_UP_GLIDER1) && THIS_DEVICE == ID::G1) || 
+                 (1 == aero::bit::read(command, CMD_PITCH_UP_GLIDER2) && THIS_DEVICE == ID::G2) ) {
+        to_safety_mode();
       }
     } break;
 
@@ -475,10 +475,10 @@ void glider_state_machine(uint8_t command) {
     case MODE_AUTO: {
       if(command == CMD_TOGGLE_ENGAGE) {
         to_idle_mode();
-      } else if(command == CMD_MODE_SWAP) {
+      } else if(1 == aero::bit::read(command, CMD_MODE_SWAP)) {
         to_manual_mode();
-      } else if( (command == CMD_PITCH_UP_GLIDER1 && THIS_DEVICE == ID::G1) || 
-                 (command == CMD_PITCH_UP_GLIDER2 && THIS_DEVICE == ID::G2) ) {
+      } else if( (1== aero::bit::read(command, CMD_PITCH_UP_GLIDER1) && THIS_DEVICE == ID::G1) || 
+                 (1 == aero::bit::read(command, CMD_PITCH_UP_GLIDER2) && THIS_DEVICE == ID::G2) ) {
         to_safety_mode();
       }
 
@@ -489,10 +489,10 @@ void glider_state_machine(uint8_t command) {
       // AUTO when Pitch:7 (MODE SWAP). Stop manual thread, stop interrupts, start auto thread
       // SAFETY when Pitch:0/1 depending on device. Stop manual thread, stop interrupts, elevons up
     case MODE_MANUAL: {
-      if(command == CMD_MODE_SWAP) {
+      if(1 == aero::bit::read(command, CMD_MODE_SWAP)) {
         to_auto_mode();
-      } else if( (command == CMD_PITCH_UP_GLIDER1 && THIS_DEVICE == ID::G1) || 
-                 (command == CMD_PITCH_UP_GLIDER2 && THIS_DEVICE == ID::G2) ) {
+      } else if( (1== aero::bit::read(command, CMD_PITCH_UP_GLIDER1) && THIS_DEVICE == ID::G1) || 
+                 (1 == aero::bit::read(command, CMD_PITCH_UP_GLIDER2) && THIS_DEVICE == ID::G2) ) {
         to_safety_mode();
       }
 
@@ -546,6 +546,7 @@ void parse_cmds(void) {
 
         message_handler.add_status(status);
     } else {
+      DEBUG_PRINT(pitch_field); DEBUG_PRINTLN(" is the command");
       glider_state_machine(pitch_field);
     }
   } else {
@@ -557,16 +558,24 @@ void parse_cmds(void) {
  * @brief Update the kalman filter values
  * @details Results in a flag being set that lets the auto thread know that new data has been received
  */
+
 void update_controller(void) {
     if(updated == true) {
     
       filter.update(imu_data.gx,imu_data.gy, imu_data.gz, 
                     imu_data.ax, imu_data.ay, imu_data.az,
                     imu_data.mx, imu_data.my, imu_data.mz);
-  
-      new_pitch = filter.getPitch_rad()*RAD_TO_DEG;
-      new_roll =  filter.getRoll_rad()*RAD_TO_DEG;
+
+//      if(first_time == true) {
+//        first_time = false;
+//        offset_pitch = filter.getPitch_rad()*RAD_TO_DEG;
+//        offset_roll = filter.getRoll_rad()*RAD_TO_DEG;  
+//      }
+
+      new_pitch = filter.getPitch_rad()*RAD_TO_DEG ;
+      new_roll =  filter.getRoll_rad()*RAD_TO_DEG ;
       new_yaw =   filter.getYaw_rad()*RAD_TO_DEG;
+      
       
       // Set PID inputs
       CONTROLLER::pitch_input = new_pitch;
@@ -582,9 +591,9 @@ void update_controller(void) {
       // Update controller values
       CONTROLLER::update(roll_control, pitch_control, yaw_control);
   
-      CONTROLLER::roll_output = roll_filter.filter(CONTROLLER::roll_output);
-      CONTROLLER::pitch_output = pitch_filter.filter(CONTROLLER::pitch_output);
-      CONTROLLER::yaw_output = yaw_filter.filter(CONTROLLER::yaw_output);
+      //CONTROLLER::roll_output = roll_filter.filter(CONTROLLER::roll_output);
+      //CONTROLLER::pitch_output = pitch_filter.filter(CONTROLLER::pitch_output);
+      //CONTROLLER::yaw_output = yaw_filter.filter(CONTROLLER::yaw_output);
       
       DEBUG_PRINT("PID Output: ");
       DEBUG_PRINT("\tRoll: "); DEBUG_PRINT(CONTROLLER::roll_output);
@@ -626,6 +635,8 @@ void setup() {
   if(CALIBRATE_MAG)   IMU::calibrate(mpu9250, IMU::MAG);
   if(CALIBRATE_BARO)  BARO::calibrate(mpl3115);
 
+  // filter.setInitializationDuration(240000000);
+  
   // Initialize PID controllers
   CONTROLLER::init(roll_control, pitch_control, yaw_control);
 
@@ -658,19 +669,51 @@ void setup() {
   } else {
     to_idle_mode();
   }
-  
+    
   // Thread to monitor CPU activity
   THREADS::ids[ACTIVITY_ID] = threads.addThread(thread_activity);
 
-  // Thread to monitor all data; verbose mode
-  #if defined(VERBOSE_DEBUG)
-    THREADS::ids[DEBUG_ID] = threads.addThread(thread_debug);
-  #endif 
-  
+  // // Thread to monitor all data; verbose mode
+  // #if defined(VERBOSE_DEBUG)
+  //   THREADS::ids[DEBUG_ID] = threads.addThread(thread_debug);
+  // #endif 
+
+  // elevons_level();
   DEBUG_PRINTLN("Setup Complete");
 }
 
+
+
+ 
 void loop() {
+//  radio_curr = millis();
+//    if(radio_curr - radio_prev >= RADIO_INTERVAL_MS) { 
+//      radio_prev = radio_curr;
+//
+//      // Keep checking for a new radio message
+//      DEBUG_PRINTLN("New Radio Message");
+//      RADIO::receive(radio, msg);
+//      msg = NULL;
+//      DEBUG_PRINTLN("New Radio Message");
+//      if( msg != NULL ) {
+//        //DEBUG_PRINTLN("New Radio Message");
+//        // Only accept message if it was addressed to this grlider
+//        if(msg->m_to == THIS_DEVICE) {
+//
+//          // Build response and set flag if response was succesfully sent
+//          server_response = message_handler.build(THIS_DEVICE, aero::def::ID::Gnd);
+//
+//          LEDS::on(RADIO_LED);
+//
+//          bool sent = RADIO::respond(radio, server_response);
+//
+//          LEDS::off(RADIO_LED);
+//
+//          new_msg = sent;
+//        } 
+//      }
+//    }
+    
   // Check for new radio commands
   if(new_msg == true) {
       parse_cmds();

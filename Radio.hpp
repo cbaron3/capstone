@@ -66,18 +66,40 @@ namespace RADIO {
      * @return true if radio received a new message
      * @return false if radio did not receive a new message
      */
-    bool receive(RH_RF95& radio, aero::def::ParsedMessage_t* msg) {
+    aero::def::ParsedMessage_t* receive(RH_RF95& radio) {
         if (radio.available()) {
             if (radio.recv(inc_data, &inc_data_len)) {
+                uint8_t link_top = inc_data[2];
+                uint8_t link_bottom = inc_data[1];
+
+                DEBUG_PRINT("Message from: "); DEBUG_PRINTLN(NAMES[link_top]);
+                DEBUG_PRINT("Message to: "); DEBUG_PRINTLN(NAMES[link_bottom]);
+                
+//                if(1 == link_bottom) {
+//                  return NULL;
+//                }
+
+                if(static_cast<int>(THIS_DEVICE) == link_bottom) {
+                    // drop buffer[6]
+                    // servos buffer[7], buffer[8]
+                    uint8_t pitch = inc_data[9];
+                    DEBUG_PRINT("Command: "); DEBUG_PRINTLN(pitch);
+
+                    // return pitch
+                } else {
+                    return NULL;
+                }
+
+
+
                 // Parse response and return it
-                last_recv = message_handler.parse(inc_data);
-                *msg = last_recv;
-                return true;
+                return message_handler.parse(inc_data);
+                
             } else {
-                return false;
+                return NULL;
             }
         } else {
-            return false;
+            return NULL;
         }
   }
 

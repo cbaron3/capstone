@@ -51,20 +51,31 @@ namespace IMU {
       // Load biases and sensitivites into eeprom
       float value;
       value = imu.getAccelBiasX_mss();
+      DEBUG_PRINT("AXB: "); DEBUG_PRINTLN(value);
       memcpy(eeprom_buffer,&value,4);
+      
       value = imu.getAccelScaleFactorX();
+      DEBUG_PRINT("AXS: "); DEBUG_PRINTLN(value);
       memcpy(eeprom_buffer+4,&value,4);
+      
       value = imu.getAccelBiasY_mss();
+      DEBUG_PRINT("AYB: "); DEBUG_PRINTLN(value);
       memcpy(eeprom_buffer+8,&value,4);
+      
       value = imu.getAccelScaleFactorY();
+      DEBUG_PRINT("AYS: "); DEBUG_PRINTLN(value);
       memcpy(eeprom_buffer+12,&value,4);
+      
       value = imu.getAccelBiasZ_mss();
+      DEBUG_PRINT("AZB: "); DEBUG_PRINTLN(value);
       memcpy(eeprom_buffer+16,&value,4);
+      
       value = imu.getAccelScaleFactorZ();
+      DEBUG_PRINT("AZS: "); DEBUG_PRINTLN(value);
       memcpy(eeprom_buffer+20,&value,4);
 
       for (size_t i=0; i < MAG_OFFSET; i++) {
-        EEPROM.write(i,eeprom_buffer[i]);
+        EEPROM.write(i+100,eeprom_buffer[i]);
       }
       
       DEBUG_PRINTLN("Accelerometer Calibration Done");
@@ -102,20 +113,31 @@ namespace IMU {
       // Load biases and sensitivites into eeprom
       float value;
       value = imu.getMagBiasX_uT();
+      DEBUG_PRINT("MXB: "); DEBUG_PRINTLN(value);
       memcpy(eeprom_buffer+24,&value,4);
+      
       value = imu.getMagScaleFactorX();
+      DEBUG_PRINT("MXS: "); DEBUG_PRINTLN(value);
       memcpy(eeprom_buffer+28,&value,4);
+      
       value = imu.getMagBiasY_uT();
+      DEBUG_PRINT("MYB: "); DEBUG_PRINTLN(value);
       memcpy(eeprom_buffer+32,&value,4);
+      
       value = imu.getMagScaleFactorY();
+      DEBUG_PRINT("MYS: "); DEBUG_PRINTLN(value);
       memcpy(eeprom_buffer+36,&value,4);
+      
       value = imu.getMagBiasZ_uT();
+      DEBUG_PRINT("MZB: "); DEBUG_PRINTLN(value);
       memcpy(eeprom_buffer+40,&value,4);
+      
       value = imu.getMagScaleFactorZ();
+      DEBUG_PRINT("MZS: "); DEBUG_PRINTLN(value);
       memcpy(eeprom_buffer+44,&value,4);
   
       for (size_t i=MAG_OFFSET; i < sizeof(eeprom_buffer); i++) {
-        EEPROM.write(i,eeprom_buffer[i]);
+        EEPROM.write(i+100,eeprom_buffer[i]);
       }
 
       DEBUG_PRINTLN("Magnometer Calibration Done");
@@ -141,7 +163,7 @@ namespace IMU {
     }
 
     // load and set accel and mag bias and scale factors
-    for (size_t i=0; i < sizeof(eeprom_buffer); i++) {
+    for (size_t i=100; i < sizeof(eeprom_buffer); i++) {
       eeprom_buffer[i] = EEPROM.read(i);
     }
 
@@ -160,14 +182,31 @@ namespace IMU {
     memcpy(&hys,eeprom_buffer+36,4);
     memcpy(&hzb,eeprom_buffer+40,4);
     memcpy(&hzs,eeprom_buffer+44,4);
-  
-    imu.setAccelCalX(axb,axs);
-    imu.setAccelCalY(ayb,ays);
-    imu.setAccelCalZ(azb,azs);
-  
-    imu.setMagCalX(hxb,hxs);
-    imu.setMagCalY(hyb,hys);
-    imu.setMagCalZ(hzb,hzs);
+
+
+//    Serial.println(axb);
+//    Serial.println(axs);
+//    Serial.println(ayb);
+//    Serial.println(ayb);
+//    Serial.println(azb);
+//    Serial.println(axs);
+//    
+//    imu.setAccelCalX(axb,axs);
+//    imu.setAccelCalY(ayb,ays);
+//    imu.setAccelCalZ(azb,azs);
+//
+//    Serial.println(hxb);
+//    Serial.println(hxs);
+//    
+//    Serial.println(hyb);
+//    Serial.println(hys);
+//    
+//    Serial.println(hzb);
+//    Serial.println(hzs);
+//    
+//    imu.setMagCalX(hxb,hxs);
+//    imu.setMagCalY(hyb,hys);
+//    imu.setMagCalZ(hzb,hzs);
   
     // setting the accelerometer full scale range to +/- 2G
     imu.setAccelRange(MPU9250::ACCEL_RANGE_2G);
